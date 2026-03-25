@@ -1,0 +1,52 @@
+"use client";
+
+import Image from "next/image";
+import type { Project } from "@/types/project";
+import { carouselConfig } from "@/lib/carouselConfig";
+
+interface ProjectCardProps {
+  project: Project;
+}
+
+const { cardWidth, cardHeight, radius } = carouselConfig;
+
+export default function ProjectCard({ project }: ProjectCardProps) {
+  return (
+    <div
+      data-project-id={project.id}
+      className="group flex shrink-0 cursor-pointer select-none flex-col pt-[8px]"
+      style={{
+        width: cardWidth,
+        minWidth: cardWidth,
+        maxWidth: cardWidth,
+        height: cardHeight,
+        minHeight: cardHeight,
+        maxHeight: cardHeight,
+      }}
+    >
+      <div className="flex items-center justify-between rounded-[4px] px-0 py-[8px] transition-all duration-200 group-hover:-translate-y-[8px] group-hover:bg-[rgba(31,43,57,0.03)] group-hover:px-[8px]">
+        <span className="text-[14px] font-semibold tracking-[-0.56px] text-black">
+          {project.name}
+        </span>
+        <span className="text-[12px] font-semibold uppercase tracking-[-0.48px] text-black/[0.19] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          View
+        </span>
+      </div>
+
+      <div
+        className="relative w-full min-h-0 flex-1 overflow-hidden"
+        style={{
+          borderRadius: radius,
+        }}
+      >
+        <Image
+          src={project.image}
+          alt={project.name}
+          fill
+          className="pointer-events-none object-cover"
+          sizes="(max-width: 768px) 80vw, 30vw"
+        />
+      </div>
+    </div>
+  );
+}

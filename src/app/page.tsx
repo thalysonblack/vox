@@ -8,7 +8,7 @@ import type { Project } from "@/types/project";
 export const revalidate = 60;
 
 export default async function Home() {
-  const projects = await client.fetch<Project[]>(projectsQuery);
+  const projects = await client.fetch<Project[]>(projectsQuery).catch(() => [] as Project[]);
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#fdfdfc]">

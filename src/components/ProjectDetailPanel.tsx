@@ -151,6 +151,19 @@ export default function ProjectDetailPanel({
             ))}
           </div>
 
+          {/* Video */}
+          {detail.video && (
+            <div className="mt-8 flex shrink-0 flex-col gap-4">
+              <span className={labelClass}>Video</span>
+              <video
+                src={detail.video}
+                controls
+                playsInline
+                className="w-full rounded-[4px]"
+              />
+            </div>
+          )}
+
           {/* External URL */}
           <div className="mt-8 flex shrink-0 flex-col gap-2">
             <span className={labelClass}>External URL</span>

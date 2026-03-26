@@ -71,6 +71,12 @@ export const projectSchema = defineType({
       of: [{ type: "image", options: { hotspot: true } }],
     }),
     defineField({
+      name: "video",
+      title: "Video",
+      type: "file",
+      options: { accept: "video/*" },
+    }),
+    defineField({
       name: "externalUrl",
       title: "External URL",
       type: "url",

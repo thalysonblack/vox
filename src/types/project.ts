@@ -6,6 +6,7 @@ export interface ProjectDetail {
   tags: string[];
   role: string[];
   gallery: string[];
+  video?: string;
   externalUrl?: string;
 }
 

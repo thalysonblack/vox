@@ -10,6 +10,7 @@ export const projectsQuery = `*[_type == "project"] | order(order asc) {
     "tags": tags,
     "role": role,
     "gallery": gallery[].asset->url,
+    "video": video.asset->url,
     "externalUrl": externalUrl
   }
 }`;

@@ -3,7 +3,7 @@ import { structureTool } from "sanity/structure";
 import { projectSchema } from "./sanity/schemas/project";
 
 export default defineConfig({
-  name: "vox-studio",
+  name: "default",
   title: "Vox Studio",
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,

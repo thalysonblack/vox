@@ -170,7 +170,10 @@ export default function ProjectDetailPanel({ project, visible, onClose }: Projec
         </svg>
       </button>
 
-      <div className="scrollbar-hide flex h-full flex-col overflow-y-auto">
+      <div
+        data-scrollable-panel
+        className="scrollbar-hide flex h-full flex-col overflow-y-auto"
+      >
         {/* Top section: Title (left) + meta column (right 50%) */}
         <div className="flex shrink-0 items-start justify-between gap-8 px-[12px] pt-[12px] pb-[48px]">
           <h2 className="shrink-0 text-[30px] font-semibold leading-[1.09] tracking-[-0.91px] text-[#2d2f2f]">

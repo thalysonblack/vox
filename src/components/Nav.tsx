@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 
 interface NavProps {
   compact?: boolean;
@@ -44,17 +43,12 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
           <p className="max-w-[193px] text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.56px] text-black">
             Design partner for founders and investors.
           </p>
-          <div className="flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[-0.36px] text-black/60">
-            <Link href="/" className="transition-colors hover:text-black">
-              Home
-            </Link>
-            <Link href="/resources" className="transition-colors hover:text-black">
-              Resources
-            </Link>
-          </div>
         </div>
 
-        <div className="relative">
+        <div
+          className="relative"
+          onMouseLeave={() => setContactOpen(false)}
+        >
           {/* CONNECT button — always in same position */}
           <button
             onClick={() => setContactOpen(!contactOpen)}

@@ -620,6 +620,9 @@ export default function ProjectCarousel({
 
     const handleWheel = (e: WheelEvent) => {
       if (e.deltaY === 0) return;
+      // Skip if scroll originated inside a scrollable element (detail panel).
+      const target = e.target as Element | null;
+      if (target?.closest("[data-scrollable-panel]")) return;
       e.preventDefault();
       if (modeRef.current === "vertical") {
         // Discrete snap per wheel accumulation — no continuous physics.
@@ -634,7 +637,8 @@ export default function ProjectCarousel({
       }
       impulseRef.current -= e.deltaY * config.wheel;
     };
-    strip.addEventListener("wheel", handleWheel, { passive: false });
+    // Attach to window so wheel works anywhere on the page.
+    window.addEventListener("wheel", handleWheel, { passive: false });
 
     const onPointerDown = (e: PointerEvent) => {
       if (!config.drag) return;
@@ -803,7 +807,7 @@ export default function ProjectCarousel({
     return () => {
       ro.disconnect();
       gsap.ticker.remove(onTick);
-      strip.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("wheel", handleWheel);
       strip.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);

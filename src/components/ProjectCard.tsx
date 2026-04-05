@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import type { Project } from "@/types/project";
+import type { Project, ProjectListItem } from "@/types/project";
 import { carouselConfig } from "@/lib/carouselConfig";
 
 interface ProjectCardProps {
-  project: Project;
+  project: Project | ProjectListItem;
 }
 
 const { cardWidth, cardHeight, radius } = carouselConfig;
@@ -25,10 +25,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       }}
     >
       <div className="flex items-center justify-between rounded-[4px] px-0 py-[8px] transition-all duration-200 group-hover:-translate-y-[8px] group-hover:bg-[rgba(31,43,57,0.03)] group-hover:px-[8px]">
-        <span className="text-[14px] font-semibold tracking-[-0.56px] text-black">
+        <span
+          className="text-[14px] font-semibold tracking-[-0.56px] text-black"
+          style={{ transition: "font-size 450ms ease-out, letter-spacing 450ms ease-out" }}
+        >
           {project.name}
         </span>
-        <span className="text-[12px] font-semibold uppercase tracking-[-0.48px] text-black/[0.19] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <span className="text-[12px] font-semibold uppercase tracking-[-0.48px] text-black/[0.19]">
           View
         </span>
       </div>

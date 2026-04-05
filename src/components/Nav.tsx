@@ -2,8 +2,14 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
-export default function Nav() {
+interface NavProps {
+  compact?: boolean;
+  onLogoClick?: () => void;
+}
+
+export default function Nav({ compact = false, onLogoClick }: NavProps) {
   const [contactOpen, setContactOpen] = useState(false);
 
   return (
@@ -11,7 +17,13 @@ export default function Nav() {
       className="relative z-[100] flex shrink-0 items-start gap-6"
       aria-label="Menu principal"
     >
-      <div className="shrink-0">
+      <button
+        type="button"
+        onClick={onLogoClick}
+        aria-label="Voltar para home"
+        className="shrink-0 origin-top-left cursor-pointer transition-transform duration-500 ease-out"
+        style={{ transform: compact ? "scale(0.72)" : "scale(1)" }}
+      >
         <Image
           src="/assets/vox-logo.svg"
           alt="VOX"
@@ -19,14 +31,28 @@ export default function Nav() {
           height={16}
           priority
         />
-      </div>
+      </button>
 
       <div className="w-[346px] shrink-0 max-xl:hidden" />
 
-      <div className="flex flex-1 items-start justify-between gap-0">
-        <p className="max-w-[193px] text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.56px] text-black">
-          Design partner for founders and investors.
-        </p>
+      <div
+        className={`flex flex-1 items-start justify-between gap-0 transition-opacity duration-300 ease-out ${
+          compact ? "pointer-events-none opacity-0" : "opacity-100"
+        }`}
+      >
+        <div className="space-y-3">
+          <p className="max-w-[193px] text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.56px] text-black">
+            Design partner for founders and investors.
+          </p>
+          <div className="flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[-0.36px] text-black/60">
+            <Link href="/" className="transition-colors hover:text-black">
+              Home
+            </Link>
+            <Link href="/resources" className="transition-colors hover:text-black">
+              Resources
+            </Link>
+          </div>
+        </div>
 
         <div className="relative">
           {/* CONNECT button — always in same position */}

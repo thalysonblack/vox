@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
 import type { Project, ContentBlock } from "@/types/project";
 
 interface ProjectDetailPanelProps {
@@ -11,91 +10,90 @@ interface ProjectDetailPanelProps {
   onClose: () => void;
 }
 
-const labelClass =
-  "text-[12px] font-semibold uppercase tracking-[-0.48px] text-black/40";
-const valueClass = "text-[12px] font-semibold tracking-[-0.48px] text-black";
-const captionClass = "text-[11px] tracking-[-0.44px] text-black/30";
+const mediaFrameClass =
+  "relative w-full overflow-hidden rounded-[4px] bg-[#2d2d2d]";
+const metaLabelClass = "text-[11px] font-semibold uppercase tracking-[-0.04em] text-black/38";
+const metaValueClass = "text-[15px] font-semibold leading-[1.4] tracking-[-0.03em] text-[#2d2f2f]";
+
+function TriangleIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      width="7"
+      height="9"
+      viewBox="0 0 7 9"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M0.75 0.75L6 4.5L0.75 8.25V0.75Z" fill="currentColor" />
+    </svg>
+  );
+}
 
 function renderBlock(block: ContentBlock) {
   if (block._type === "imageBlock") {
-    const ratio = block.orientation === "vertical" ? "4/5" : "16/9";
+    const isVertical = block.orientation === "vertical";
+    const aspect = isVertical ? "720 / 1020" : "1420 / 770";
+
     return (
-      <div key={block._key} className="flex shrink-0 flex-col gap-2">
-        <div
-          className="relative w-full overflow-hidden rounded-[4px]"
-          style={{ aspectRatio: ratio }}
-        >
-          <Image
-            src={block.url}
-            alt={block.caption || ""}
-            fill
-            className="object-cover"
-            sizes="70vw"
-          />
+      <div key={block._key} className="w-full">
+        <div className={mediaFrameClass} style={{ aspectRatio: aspect }}>
+          {block.url && (
+            <Image
+              src={block.url}
+              alt={block.caption || ""}
+              fill
+              className="object-cover"
+              sizes="72vw"
+            />
+          )}
         </div>
-        {block.caption && <span className={captionClass}>{block.caption}</span>}
       </div>
     );
   }
 
   if (block._type === "imagePair") {
     return (
-      <div key={block._key} className="flex shrink-0 flex-col gap-2">
-        <div className="flex gap-2">
-          <div
-            className="relative flex-1 overflow-hidden rounded-[4px]"
-            style={{ aspectRatio: "1/1" }}
-          >
+      <div key={block._key} className="grid w-full grid-cols-2 gap-[18px]">
+        <div className={mediaFrameClass} style={{ aspectRatio: "700 / 400" }}>
+          {block.leftUrl && (
             <Image
               src={block.leftUrl}
-              alt="Left"
+              alt=""
               fill
               className="object-cover"
-              sizes="35vw"
+              sizes="36vw"
             />
-          </div>
-          <div
-            className="relative flex-1 overflow-hidden rounded-[4px]"
-            style={{ aspectRatio: "1/1" }}
-          >
+          )}
+        </div>
+        <div className={mediaFrameClass} style={{ aspectRatio: "700 / 400" }}>
+          {block.rightUrl && (
             <Image
               src={block.rightUrl}
-              alt="Right"
+              alt=""
               fill
               className="object-cover"
-              sizes="35vw"
+              sizes="36vw"
             />
-          </div>
+          )}
         </div>
-        {block.caption && <span className={captionClass}>{block.caption}</span>}
       </div>
     );
   }
 
   if (block._type === "videoBlock") {
     return (
-      <div key={block._key} className="flex shrink-0 flex-col gap-2">
-        <video
-          src={block.url}
-          controls
-          playsInline
-          className="w-full rounded-[4px]"
-        />
-        {block.caption && <span className={captionClass}>{block.caption}</span>}
+      <div key={block._key} className={mediaFrameClass} style={{ aspectRatio: "1420 / 799" }}>
+        <video src={block.url} controls playsInline className="h-full w-full object-cover" />
       </div>
     );
   }
 
   if (block._type === "gifBlock") {
     return (
-      <div key={block._key} className="flex shrink-0 flex-col gap-2">
+      <div key={block._key} className={mediaFrameClass}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={block.url}
-          alt={block.caption || ""}
-          className="w-full rounded-[4px]"
-        />
-        {block.caption && <span className={captionClass}>{block.caption}</span>}
+        <img src={block.url} alt="" className="h-full w-full object-cover" />
       </div>
     );
   }
@@ -104,7 +102,7 @@ function renderBlock(block: ContentBlock) {
     return (
       <p
         key={block._key}
-        className="max-w-[560px] text-[14px] font-semibold leading-[1.5] tracking-[-0.56px] text-black/50"
+        className="max-w-[44rem] text-[15px] font-semibold leading-[1.45] tracking-[-0.03em] text-[#2d2f2f]"
       >
         {block.text}
       </p>
@@ -114,12 +112,31 @@ function renderBlock(block: ContentBlock) {
   return null;
 }
 
-export default function ProjectDetailPanel({
-  project,
-  visible,
-  onClose,
-}: ProjectDetailPanelProps) {
+// Mock fallback data — used when Sanity fields are empty.
+const MOCK_DESCRIPTION =
+  "Lorem ipsum dolor sit amet consectetur. Quam sapien et augue sit ornare amet ut suspendisse senectus. Congue ut eu ac ultricies morbi metus auctor. Orci amet venenatis scelerisque feugiat. Porttitor egestas purus donec eu vulputate dui volutpat. Sociis massa nisl condimentum est urna suspendisse aliquet. Quam vel tellus tristique sit morbi fusce in.";
+const MOCK_TYPE = "UI Design";
+const MOCK_CREDITS = [{ _key: "mock-1", name: "Cadu", role: "Development" }];
+
+// Mock content blocks — dark gray placeholders matching the reference layout.
+const MOCK_CONTENT: ContentBlock[] = [
+  { _type: "imageBlock", _key: "m-hero", url: "", orientation: "horizontal" },
+  { _type: "imagePair", _key: "m-pair-1", leftUrl: "", rightUrl: "" },
+  { _type: "imagePair", _key: "m-pair-2", leftUrl: "", rightUrl: "" },
+  { _type: "imageBlock", _key: "m-full-1", url: "", orientation: "vertical" },
+  { _type: "imageBlock", _key: "m-full-2", url: "", orientation: "vertical" },
+];
+
+export default function ProjectDetailPanel({ project, visible, onClose }: ProjectDetailPanelProps) {
   const { detail } = project;
+
+  // Apply mocks where Sanity data is missing.
+  const description = detail.description || MOCK_DESCRIPTION;
+  const typeValue = detail.discipline || detail.category || MOCK_TYPE;
+  const credits = detail.credits && detail.credits.length > 0 ? detail.credits : MOCK_CREDITS;
+  const liveUrl = detail.liveUrl || detail.externalUrl || "https://example.com";
+  const content =
+    detail.content && detail.content.length > 0 ? detail.content : MOCK_CONTENT;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -130,230 +147,109 @@ export default function ProjectDetailPanel({
   }, [onClose]);
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className={`fixed inset-0 z-[200] bg-black/10 backdrop-blur-[2px] transition-opacity duration-500 ease-out ${
-          visible ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
+    <div
+      className={`fixed top-0 right-0 bottom-0 z-[201] bg-[#f7f6f3] transition-transform duration-500 ease-out ${
+        visible ? "translate-x-0" : "translate-x-full"
+      }`}
+      style={{ left: "clamp(340px, 22vw, 440px)" }}
+    >
+      {/* Close button — outside panel, aligned with the title */}
+      <button
+        type="button"
         onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div
-        className={`fixed top-0 right-0 bottom-0 z-[201] w-[80vw] bg-[#fdfdfc] shadow-[-1px_0_0_0_rgba(0,0,0,0.06)] transition-transform duration-500 ease-out ${
-          visible ? "translate-x-0" : "translate-x-full"
-        }`}
+        aria-label="Fechar detalhes do projeto"
+        className="absolute top-[8px] left-[-8px] z-[35] flex h-[22px] w-[22px] -translate-x-full items-center justify-center rounded-l-[3px] bg-[#efefef] px-0 text-[#2d2f2f] transition-colors hover:bg-[#e3e3e3]"
       >
-        <div className="scrollbar-hide flex h-full flex-col overflow-y-auto p-3">
-          {/* Header */}
-          <div className="flex shrink-0 items-center justify-between">
-            <h2 className="text-[14px] font-semibold uppercase tracking-[-0.56px] text-black">
-              {project.name}
-            </h2>
-            <button
-              onClick={onClose}
-              className="flex cursor-pointer items-center justify-center rounded-[4px] p-1 transition-colors hover:bg-black/[0.06]"
-            >
-              <X size={16} strokeWidth={2} className="text-black" />
-            </button>
-          </div>
+        <svg
+          width={5}
+          height={7}
+          viewBox="0 0 5 7"
+          fill="currentColor"
+        >
+          <path d="M0.3 0.3L4.2 3.5L0.3 6.7V0.3Z" />
+        </svg>
+      </button>
 
-          {/* Divider */}
-          <div className="my-6 h-px w-full bg-black/10" />
+      <div className="scrollbar-hide flex h-full flex-col overflow-y-auto">
+        {/* Top section: Title (left) + meta column (right 50%) */}
+        <div className="flex shrink-0 items-start justify-between gap-8 px-[12px] pt-[12px] pb-[48px]">
+          <h2 className="shrink-0 text-[30px] font-semibold leading-[1.09] tracking-[-0.91px] text-[#2d2f2f]">
+            {project.name}
+          </h2>
 
-          {/* Hero Image */}
-          <div
-            className="relative shrink-0 w-full overflow-hidden rounded-[4px]"
-            style={{ aspectRatio: "16/10" }}
-          >
-            <Image
-              src={project.image}
-              alt={project.name}
-              fill
-              className="object-cover"
-              sizes="70vw"
-            />
-          </div>
+          <div className="flex w-[50%] max-w-[720px] shrink-0 flex-col">
+            <p className="text-[15px] font-semibold leading-[1.4] tracking-[-0.455px] text-[#2d2f2f]">
+              {description}
+            </p>
 
-          {/* Meta */}
-          <div className="mt-8 flex shrink-0 flex-wrap gap-x-12 gap-y-4">
-            {detail.year && (
-              <div className="flex flex-col gap-1">
-                <span className={labelClass}>Year</span>
-                <span className={valueClass}>{detail.year}</span>
+            <div className="mt-[18px] h-px w-full bg-black/[0.08]" />
+
+            <div className="mt-[16px] flex items-start gap-10">
+              <div className="flex flex-col gap-[9px]">
+                <span className={metaLabelClass}>Type</span>
+                <span className={metaValueClass}>{typeValue}</span>
               </div>
-            )}
-            {detail.discipline && (
-              <div className="flex flex-col gap-1">
-                <span className={labelClass}>Discipline</span>
-                <span className={valueClass}>{detail.discipline}</span>
-              </div>
-            )}
-            {detail.category && (
-              <div className="flex flex-col gap-1">
-                <span className={labelClass}>Category</span>
-                <span className={valueClass}>{detail.category}</span>
-              </div>
-            )}
-            {detail.client && (
-              <div className="flex flex-col gap-1">
-                <span className={labelClass}>Client</span>
-                <span className={valueClass}>{detail.client}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Description */}
-          {detail.description && (
-            <div className="mt-8">
-              <span className={`mb-2 block ${labelClass}`}>Description</span>
-              <p className="max-w-[560px] text-[14px] font-semibold leading-[1.5] tracking-[-0.56px] text-black/70">
-                {detail.description}
-              </p>
-            </div>
-          )}
-
-          {/* Role */}
-          {detail.role?.length > 0 && (
-            <div className="mt-8 flex shrink-0 flex-col gap-2">
-              <span className={labelClass}>Role</span>
-              <div className="flex flex-wrap gap-2">
-                {detail.role.map((r) => (
-                  <span
-                    key={r}
-                    className="rounded-[4px] bg-black/[0.04] px-3 py-1.5 text-[12px] font-semibold tracking-[-0.48px] text-black"
-                  >
-                    {r}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Tags */}
-          {detail.tags?.length > 0 && (
-            <div className="mt-6 flex shrink-0 flex-col gap-2">
-              <span className={labelClass}>Tags</span>
-              <div className="flex flex-wrap gap-2">
-                {detail.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[12px] font-semibold tracking-[-0.48px] text-black/40"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Content Blocks */}
-          {detail.content?.length > 0 && (
-            <div className="mt-8 flex shrink-0 flex-col gap-4">
-              {detail.content.map((block) => renderBlock(block))}
-            </div>
-          )}
-
-          {/* Credits */}
-          {detail.credits?.length > 0 && (
-            <div className="mt-8 flex shrink-0 flex-col gap-3">
-              <span className={labelClass}>Credits</span>
-              <div className="flex flex-col gap-1.5">
-                {detail.credits.map((c) => (
-                  <div key={c._key} className="flex items-baseline gap-3">
-                    <span className="w-[120px] shrink-0 text-[11px] font-semibold uppercase tracking-[-0.44px] text-black/30">
-                      {c.role}
-                    </span>
-                    <span className={valueClass}>{c.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Live Website */}
-          {detail.liveUrl && (
-            <div className="mt-8 flex shrink-0 flex-col gap-2">
-              <span className={labelClass}>Live Website</span>
-              <a
-                href={detail.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[-0.48px] text-black transition-colors hover:text-black/60"
-              >
-                Visit Live Site
-                <svg width={12} height={12} viewBox="0 0 12 12" fill="none">
-                  <path
-                    d="M2 10L10 2M10 2H4M10 2V8"
-                    stroke="currentColor"
-                    strokeLinecap="square"
-                  />
-                </svg>
-              </a>
-            </div>
-          )}
-
-          {/* External URL */}
-          {detail.externalUrl && (
-            <div className="mt-8 flex shrink-0 flex-col gap-2">
-              <span className={labelClass}>External URL</span>
-              <a
-                href={detail.externalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[-0.48px] text-black transition-colors hover:text-black/60"
-              >
-                View Project
-                <svg width={12} height={12} viewBox="0 0 12 12" fill="none">
-                  <path
-                    d="M2 10L10 2M10 2H4M10 2V8"
-                    stroke="currentColor"
-                    strokeLinecap="square"
-                  />
-                </svg>
-              </a>
-            </div>
-          )}
-
-          {/* Related Projects */}
-          {detail.relatedProjects?.length > 0 && (
-            <div className="mt-8 flex shrink-0 flex-col gap-3">
-              <span className={labelClass}>Related Projects</span>
-              <div className="flex gap-2">
-                {detail.relatedProjects.map((rp) => (
-                  <div
-                    key={rp.id}
-                    className="group flex flex-1 cursor-pointer flex-col gap-1.5"
-                  >
-                    <div
-                      className="relative w-full overflow-hidden rounded-[4px]"
-                      style={{ aspectRatio: "16/10" }}
+              <div className="flex flex-col gap-[9px]">
+                <span className={metaLabelClass}>Credits</span>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  {credits.map((credit) => (
+                    <span
+                      key={credit._key}
+                      className="text-[15px] font-semibold leading-[1.4] tracking-[-0.455px]"
                     >
-                      <Image
-                        src={rp.image}
-                        alt={rp.name}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                        sizes="20vw"
-                      />
-                    </div>
-                    <span className="text-[11px] font-semibold tracking-[-0.44px] text-black">
-                      {rp.name}
+                      <span className="text-[#2d2f2f]">{credit.name}</span>{" "}
+                      <span className="text-[#959595]">{credit.role}</span>
                     </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-[-0.4px] text-black/30">
-                      {rp.category}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
+              {liveUrl && (
+                <a
+                  href={liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-[22px] ml-auto inline-flex shrink-0 items-center justify-between gap-[12px] bg-[#efefef] px-[9px] py-[3px] transition-colors hover:bg-black/[0.08]"
+                  style={{ minWidth: "122px" }}
+                >
+                  <svg
+                    width={6}
+                    height={8}
+                    viewBox="0 0 6 8"
+                    fill="#2d2f2f"
+                    className="shrink-0"
+                  >
+                    <path d="M0 0L6 4L0 8V0Z" />
+                  </svg>
+                  <span className="text-[15px] font-semibold leading-[1.4] tracking-[-0.455px] text-[#2d2f2f]">
+                    Live Site
+                  </span>
+                </a>
+              )}
             </div>
-          )}
+          </div>
+        </div>
 
-          {/* Bottom spacer */}
-          <div className="mt-8 shrink-0" />
+        <section className="shrink-0 px-[12px] pb-[48px]">
+          <div className="flex flex-col gap-[18px]">
+            {content.map((block) => renderBlock(block))}
+          </div>
+        </section>
+
+        <div className="mt-auto shrink-0 px-[12px] pb-[18px]">
+          <div className="border-t border-black/[0.08] pt-6">
+            <div className="flex items-start justify-between gap-8">
+              <span className="text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.05em] text-black/42">
+                © 2026
+              </span>
+
+              <span className="max-w-[30rem] text-right text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.05em] text-black/42">
+                We bring ideas to life, and life to ideas, through strategy, design, and
+                communication.
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -39,3 +39,14 @@ export interface Project {
   image: string;
   detail: ProjectDetail;
 }
+
+// Lightweight project — used in the carousel (no heavy content blocks).
+export interface ProjectListItem {
+  id: string;
+  name: string;
+  image: string;
+  detail: {
+    category?: string;
+    discipline?: string;
+  };
+}

@@ -14,7 +14,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <div
       data-project-id={project.id}
-      className="group flex shrink-0 cursor-pointer select-none flex-col pt-[8px] w-[250px] min-w-[250px] max-w-[250px] h-[337px] min-h-[337px] max-h-[337px] md:w-[330px] md:min-w-[330px] md:max-w-[330px] md:h-[445px] md:min-h-[445px] md:max-h-[445px] xl:w-[446px] xl:min-w-[446px] xl:max-w-[446px] xl:h-[601px] xl:min-h-[601px] xl:max-h-[601px]"
+      className="group flex shrink-0 cursor-pointer select-none flex-col pt-[8px] w-[200px] min-w-[200px] max-w-[200px] h-[270px] min-h-[270px] max-h-[270px] sm:w-[240px] sm:min-w-[240px] sm:max-w-[240px] sm:h-[323px] sm:min-h-[323px] sm:max-h-[323px] md:w-[330px] md:min-w-[330px] md:max-w-[330px] md:h-[445px] md:min-h-[445px] md:max-h-[445px] xl:w-[446px] xl:min-w-[446px] xl:max-w-[446px] xl:h-[601px] xl:min-h-[601px] xl:max-h-[601px]"
     >
       <div className="flex items-center justify-between rounded-[4px] px-0 py-[8px] transition-all duration-200 group-hover:-translate-y-[8px] group-hover:bg-[rgba(31,43,57,0.03)] group-hover:px-[8px]">
         <span

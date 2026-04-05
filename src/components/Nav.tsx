@@ -39,7 +39,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
           compact ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
-        <div className="space-y-3">
+        <div className="hidden space-y-3 md:block">
           <p className="max-w-[193px] text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.56px] text-black">
             Design partner for founders and investors.
           </p>

@@ -15,11 +15,11 @@ export default function Footer() {
       </div>
 
       {/* Footer content */}
-      <div className="flex items-end justify-between gap-0">
-        <p className="text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.64px] text-black/45">
+      <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-end md:gap-0">
+        <p className="text-[11px] font-semibold uppercase leading-[1.25] tracking-[-0.4px] text-black/45 md:text-[14px] md:tracking-[-0.64px]">
           © 2026
         </p>
-        <p className="max-w-[345px] text-left text-[14px] font-sans font-semibold uppercase leading-[1.25] tracking-[-0.64px] text-black/45">
+        <p className="max-w-[345px] text-left text-[11px] font-sans font-semibold uppercase leading-[1.25] tracking-[-0.4px] text-black/45 md:text-[14px] md:tracking-[-0.64px]">
           We bring ideas to life, and life to ideas, through strategy, design,
           and communication.
         </p>

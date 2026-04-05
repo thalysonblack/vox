@@ -148,17 +148,16 @@ export default function ProjectDetailPanel({ project, visible, onClose }: Projec
 
   return (
     <div
-      className={`fixed top-0 right-0 bottom-0 z-[201] bg-[#f7f6f3] transition-transform duration-500 ease-out ${
+      className={`fixed top-0 right-0 bottom-0 left-0 z-[201] bg-[#f7f6f3] transition-transform duration-500 ease-out md:left-[22vw] xl:left-[min(22vw,440px)] ${
         visible ? "translate-x-0" : "translate-x-full"
       }`}
-      style={{ left: "clamp(340px, 22vw, 440px)" }}
     >
       {/* Close button — outside panel, aligned with the title */}
       <button
         type="button"
         onClick={onClose}
         aria-label="Fechar detalhes do projeto"
-        className="absolute top-[8px] left-[-8px] z-[35] flex h-[22px] w-[22px] -translate-x-full items-center justify-center rounded-l-[3px] bg-[#efefef] px-0 text-[#2d2f2f] transition-colors hover:bg-[#e3e3e3]"
+        className="absolute top-[8px] z-[35] flex h-[22px] w-[22px] items-center justify-center bg-[#efefef] px-0 text-[#2d2f2f] transition-colors hover:bg-[#e3e3e3] right-[12px] rounded-[3px] md:right-auto md:left-[-8px] md:-translate-x-full md:rounded-l-[3px] md:rounded-r-none"
       >
         <svg
           width={5}
@@ -175,19 +174,19 @@ export default function ProjectDetailPanel({ project, visible, onClose }: Projec
         className="scrollbar-hide flex h-full flex-col overflow-y-auto"
       >
         {/* Top section: Title (left) + meta column (right 50%) */}
-        <div className="flex shrink-0 items-start justify-between gap-8 px-[12px] pt-[12px] pb-[48px]">
-          <h2 className="shrink-0 text-[30px] font-semibold leading-[1.09] tracking-[-0.91px] text-[#2d2f2f]">
+        <div className="flex shrink-0 flex-col items-start gap-6 px-[12px] pt-[12px] pb-[32px] md:flex-row md:justify-between md:gap-8 md:pb-[48px]">
+          <h2 className="shrink-0 text-[24px] font-semibold leading-[1.09] tracking-[-0.72px] text-[#2d2f2f] md:text-[30px] md:tracking-[-0.91px]">
             {project.name}
           </h2>
 
-          <div className="flex w-[50%] max-w-[720px] shrink-0 flex-col">
+          <div className="flex w-full shrink-0 flex-col md:w-[50%] md:max-w-[720px]">
             <p className="text-[15px] font-semibold leading-[1.4] tracking-[-0.455px] text-[#2d2f2f]">
               {description}
             </p>
 
             <div className="mt-[18px] h-px w-full bg-black/[0.08]" />
 
-            <div className="mt-[16px] flex items-start gap-10">
+            <div className="mt-[16px] flex flex-wrap items-start gap-6 md:gap-10">
               <div className="flex flex-col gap-[9px]">
                 <span className={metaLabelClass}>Type</span>
                 <span className={metaValueClass}>{typeValue}</span>
@@ -240,7 +239,7 @@ export default function ProjectDetailPanel({ project, visible, onClose }: Projec
 
         <div className="mt-auto shrink-0 px-[12px] pb-[18px]">
           <div className="border-t border-black/[0.08] pt-6">
-            <div className="flex items-start justify-between gap-8">
+            <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:gap-8">
               <span className="text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.05em] text-black/42">
                 © 2026
               </span>

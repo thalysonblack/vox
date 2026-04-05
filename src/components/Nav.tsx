@@ -35,7 +35,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
       <div className="w-[346px] shrink-0 max-xl:hidden" />
 
       <div
-        className={`flex flex-1 items-start justify-between gap-0 transition-opacity duration-300 ease-out ${
+        className={`flex flex-1 items-start justify-end gap-0 transition-opacity duration-300 ease-out md:justify-between ${
           compact ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >

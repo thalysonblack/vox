@@ -10,6 +10,27 @@
 :root {
   --background: #fdfdfc;
   --foreground: #000000;
+  /* Responsive project card sizing — preserves 446:601 aspect ratio. */
+  --pc-w: 446px;
+  --pc-h: 601px;
+}
+@media (max-width: 1279px) {
+  :root {
+    --pc-w: 330px;
+    --pc-h: 445px;
+  }
+}
+@media (max-width: 767px) {
+  :root {
+    --pc-w: 260px;
+    --pc-h: 350px;
+  }
+}
+@media (max-width: 479px) {
+  :root {
+    --pc-w: 220px;
+    --pc-h: 296px;
+  }
 }
 
 @layer base {

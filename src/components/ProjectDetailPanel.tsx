@@ -54,7 +54,7 @@ function renderBlock(block: ContentBlock) {
 
   if (block._type === "imagePair") {
     return (
-      <div key={block._key} className="grid w-full grid-cols-2 gap-[18px]">
+      <div key={block._key} className="grid w-full grid-cols-2 gap-[12px]">
         <div className={mediaFrameClass} style={{ aspectRatio: "700 / 400" }}>
           {block.leftUrl && (
             <Image
@@ -232,7 +232,7 @@ export default function ProjectDetailPanel({ project, visible, onClose }: Projec
         </div>
 
         <section className="shrink-0 px-[12px] pb-[48px]">
-          <div className="flex flex-col gap-[18px]">
+          <div className="flex flex-col gap-[12px]">
             {content.map((block) => renderBlock(block))}
           </div>
         </section>

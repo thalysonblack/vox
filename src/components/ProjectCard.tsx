@@ -6,15 +6,20 @@ import { carouselConfig } from "@/lib/carouselConfig";
 
 interface ProjectCardProps {
   project: Project | ProjectListItem;
+  hideImage?: boolean;
+  onPointerEnter?: () => void;
+  onPointerLeave?: () => void;
 }
 
 const { radius } = carouselConfig;
 
-export default function ProjectCard({ project }: ProjectCardProps) {
+export default function ProjectCard({ project, hideImage, onPointerEnter, onPointerLeave }: ProjectCardProps) {
   return (
     <div
       data-project-id={project.id}
       className="group flex shrink-0 cursor-pointer select-none flex-col pt-[8px]"
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
       style={{
         width: "var(--pc-w, 446px)",
         minWidth: "var(--pc-w, 446px)",
@@ -46,7 +51,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           src={project.image}
           alt={project.name}
           fill
-          className="pointer-events-none object-cover"
+          className="pointer-events-none object-cover transition-opacity duration-300"
+          style={{ opacity: hideImage ? 0 : 1 }}
           sizes="(max-width: 768px) 80vw, 30vw"
         />
       </div>

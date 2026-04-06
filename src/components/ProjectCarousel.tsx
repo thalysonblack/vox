@@ -2,16 +2,10 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { gsap } from "gsap";
-import dynamic from "next/dynamic";
 import ProjectCard from "@/components/ProjectCard";
 import ProjectDetailPanel from "@/components/ProjectDetailPanel";
 import { carouselConfig as config } from "@/lib/carouselConfig";
 import type { Project, ProjectListItem } from "@/types/project";
-
-const WebGLCarouselLayer = dynamic(
-  () => import("@/components/WebGLCarouselLayer"),
-  { ssr: false },
-);
 
 interface ProjectCarouselProps {
   projects: ProjectListItem[];
@@ -47,9 +41,6 @@ export default function ProjectCarousel({
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [panelVisible, setPanelVisible] = useState(false);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [loadedTextures, setLoadedTextures] = useState<Set<string>>(new Set());
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const isAnimatingRef = useRef(false);
   const animTimelineRef = useRef<gsap.core.Timeline | null>(null);
@@ -566,14 +557,6 @@ export default function ProjectCarousel({
     [onDetailOpen],
   );
 
-  const handleTextureLoaded = useCallback((projectId: string) => {
-    setLoadedTextures((prev) => {
-      const next = new Set(prev);
-      next.add(projectId);
-      return next;
-    });
-  }, []);
-
   // Expose closePanel to parent so logo click can trigger it.
   useEffect(() => {
     onRegisterCloseHandler?.(() => closePanel());
@@ -851,21 +834,10 @@ export default function ProjectCarousel({
 
   return (
     <>
-      <div ref={wrapperRef} className={`relative flex min-h-0 flex-1 justify-center ${vAlignClass}`}>
-        <WebGLCarouselLayer
-          projects={projects}
-          containerRef={wrapperRef}
-          stripRef={stripRef}
-          posRef={posRef}
-          impulseRef={impulseRef}
-          isAnimatingRef={isAnimatingRef}
-          modeRef={modeRef}
-          hoveredId={hoveredId}
-          onTextureLoaded={handleTextureLoaded}
-        />
+      <div className={`flex min-h-0 flex-1 justify-center ${vAlignClass}`}>
         <section
           ref={stripRef}
-          className="scrollbar-hide relative z-[2] flex w-full touch-none cursor-grab overflow-x-auto overflow-y-hidden active:cursor-grabbing"
+          className="scrollbar-hide flex w-full touch-none cursor-grab overflow-x-auto overflow-y-hidden active:cursor-grabbing"
           style={{
             gap: config.gap,
             ["--card-width" as string]: `${config.cardWidth}px`,
@@ -880,24 +852,12 @@ export default function ProjectCarousel({
             style={{ gap: config.gap, paddingLeft: 12 }}
           >
             {projects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                hideImage={loadedTextures.has(project.id)}
-                onPointerEnter={() => setHoveredId(project.id)}
-                onPointerLeave={() => setHoveredId(null)}
-              />
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
           <div className="flex shrink-0 items-center" style={{ gap: config.gap }}>
             {projects.map((project) => (
-              <ProjectCard
-                key={`dup-${project.id}`}
-                project={project}
-                hideImage={loadedTextures.has(project.id)}
-                onPointerEnter={() => setHoveredId(project.id)}
-                onPointerLeave={() => setHoveredId(null)}
-              />
+              <ProjectCard key={`dup-${project.id}`} project={project} />
             ))}
           </div>
         </section>

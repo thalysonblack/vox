@@ -41,13 +41,6 @@
   }
 }
 
-/* WebGL carousel: hide on mobile */
-@media (max-width: 768px) {
-  .webgl-carousel-canvas {
-    display: none !important;
-  }
-}
-
 /* Hide scrollbar but keep scrolling */
 .scrollbar-hide {
   -ms-overflow-style: none;

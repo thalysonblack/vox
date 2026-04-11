@@ -1,5 +1,5 @@
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
+import Nav from "@/components/nav/Nav";
+import Footer from "@/components/footer/Footer";
 import ResourcesGrid from "@/components/resources/ResourcesGrid";
 import ResourcesHero from "@/components/resources/ResourcesHero";
 import { resourcesQuery } from "@/lib/queries";

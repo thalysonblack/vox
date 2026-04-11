@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
-import ProjectCarousel from "@/components/ProjectCarousel";
+import Nav from "@/components/nav/Nav";
+import Footer from "@/components/footer/Footer";
+import ProjectCarousel from "@/components/carousel/ProjectCarousel";
 import type { ProjectListItem } from "@/types/project";
 
 interface HomeLayoutProps {

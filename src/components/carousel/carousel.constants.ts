@@ -1,0 +1,70 @@
+/**
+ * Animation constants for the carousel choreography.
+ * Extracted from ProjectCarousel to eliminate magic numbers.
+ */
+
+// --- Phase A: Horizontal row (shrink to vertical scales) ---
+export const PHASE_A = {
+  clickedScale: 0.54,
+  otherScale: 0.36,
+  gapMultiplier: 2.2,
+  minGap: 96,
+} as const;
+
+// --- Phase B: Vertical selector (3-tier progressive scale) ---
+export const PHASE_B = {
+  centerScale: 0.48,
+  adjacentScale: 0.38,
+  otherScale: 0.26,
+  gap: 32,
+  columnX: 96,
+} as const;
+
+// --- Animation timing ---
+export const TIMING = {
+  /** Phase B vertical slide duration */
+  verticalDur: 0.9,
+  /** Phase B horizontal slide duration */
+  horizontalDur: 0.95,
+  /** Horizontal slide start offset (overlaps with vertical) */
+  horizontalStart: 0.35,
+  /** When to open detail panel during choreography */
+  detailOpenAt: 0.85,
+  /** Reverse animation duration */
+  reverseDur: 0.85,
+  /** Vertical snap scroll duration */
+  verticalSnapDur: 0.45,
+  /** Vertical tap-scroll duration */
+  verticalTapScrollDur: 0.55,
+  /** Duplicate fade-out duration */
+  dupFadeOutDur: 0.4,
+  /** Duplicate fade-out delay */
+  dupFadeOutDelay: 0.9,
+  /** Duplicate fade-in duration (reverse) */
+  dupFadeInDur: 0.55,
+  /** Duplicate fade-in delay (reverse) */
+  dupFadeInDelay: 0.25,
+} as const;
+
+// --- Vertical mode title style overrides ---
+export const VERTICAL_TITLE = {
+  fontSize: "22px",
+  letterSpacing: "-0.88px",
+} as const;
+
+// --- Vertical mode active card style ---
+export const ACTIVE_CARD_STYLE = {
+  translateY: "-8px",
+  bgColor: "rgba(31,43,57,0.03)",
+  paddingX: "8px",
+} as const;
+
+// --- Wheel / drag thresholds ---
+export const INTERACTION = {
+  /** Wheel accumulation threshold for vertical snap */
+  wheelThreshold: 40,
+  /** Drag distance threshold for vertical tap vs drag */
+  dragStepPx: 60,
+  /** Active card slot threshold (|slotOff| < this = active) */
+  activeSlotThreshold: 0.5,
+} as const;

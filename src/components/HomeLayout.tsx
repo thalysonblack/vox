@@ -4,13 +4,19 @@ import { useCallback, useRef, useState } from "react";
 import Nav from "@/components/nav/Nav";
 import ProjectCarousel from "@/components/carousel/ProjectCarousel";
 import type { ProjectListItem } from "@/types/project";
+import type { ResolvedScrollPhysics } from "@/types/settings";
 
 interface HomeLayoutProps {
   projects: ProjectListItem[];
   initialSlug?: string;
+  scrollPhysics?: ResolvedScrollPhysics;
 }
 
-export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
+export default function HomeLayout({
+  projects,
+  initialSlug,
+  scrollPhysics,
+}: HomeLayoutProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const closeHandlerRef = useRef<() => void>(() => {});
 
@@ -34,6 +40,7 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
         <ProjectCarousel
           projects={projects}
           initialSlug={initialSlug}
+          scrollPhysics={scrollPhysics}
           onDetailOpen={() => setDetailOpen(true)}
           onDetailClose={() => setDetailOpen(false)}
           onRegisterCloseHandler={(fn) => {

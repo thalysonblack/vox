@@ -8,10 +8,10 @@ import {
   ACTIVE_CARD_STYLE,
   DESKTOP_PHYSICS,
   INTERACTION,
-  MOBILE_PHYSICS,
 } from "./carousel.constants";
 import { computeSlotY, computeSlotScale } from "./carousel.animations";
 import type { ScrollPosition, VerticalState } from "./carousel.types";
+import type { ResolvedScrollPhysics } from "@/types/settings";
 
 const wrap = (v: number, sw: number) => ((v % sw) + sw) % sw;
 
@@ -23,6 +23,7 @@ export interface TickContext {
   getMode: () => "horizontal" | "vertical";
   getVState: () => VerticalState | null;
   getSetWidth: () => number;
+  getPhysics: () => ResolvedScrollPhysics;
   strip: HTMLElement;
 }
 
@@ -39,9 +40,8 @@ export function createTickHandler(ctx: TickContext): () => void {
     const isVertical = ctx.getMode() === "vertical";
 
     // Apply friction to impulse — gentler in vertical mode for longer glide.
-    const frictionBase = isVertical
-      ? MOBILE_PHYSICS.friction
-      : DESKTOP_PHYSICS.friction;
+    const physics = ctx.getPhysics();
+    const frictionBase = isVertical ? physics.friction : DESKTOP_PHYSICS.friction;
     const friction = Math.pow(frictionBase, dt);
     let impulse = ctx.getImpulse() * friction;
     if (Math.abs(impulse) < 0.01) impulse = 0;
@@ -50,7 +50,7 @@ export function createTickHandler(ctx: TickContext): () => void {
     // Advance target and ease current toward it.
     pos.target += impulse * dt;
     // Vertical uses smoother lag (pos.current chases pos.target slowly).
-    const smoothBase = isVertical ? MOBILE_PHYSICS.smoothLag : config.smooth;
+    const smoothBase = isVertical ? physics.smoothLag : config.smooth;
     const ease = 1 - Math.pow(smoothBase, dt);
     const diff = pos.target - pos.current;
     if (Math.abs(diff) < 0.3) {

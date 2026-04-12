@@ -518,7 +518,7 @@ export default function ProjectCarousel({
           <div
             ref={set1Ref}
             className="flex shrink-0 items-center"
-            style={{ gap: config.gap, paddingLeft: 12 }}
+            style={{ gap: config.gap }}
           >
             {Array.from({ length: repeats }).flatMap((_, r) =>
               projects.map((project, i) => (

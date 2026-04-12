@@ -11,7 +11,7 @@
   --background: #fdfdfc;
   --foreground: #000000;
   /* Fluid project card sizing — preserves 446:601 aspect ratio (ratio 1.348). */
-  --pc-w: clamp(216px, 24vw, 535px);
+  --pc-w: clamp(280px, 31vw, 695px);
   --pc-h: calc(var(--pc-w) * 1.348);
 }
 @media (max-width: 767px) {

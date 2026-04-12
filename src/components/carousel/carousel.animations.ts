@@ -69,20 +69,99 @@ export function computeSlotY(
 }
 
 /** Compute the 3-tier progressive scale for a given slot distance. */
-export function computeSlotScale(absSlot: number): number {
+export function computeSlotScale(
+  absSlot: number,
+  centerScale: number = PHASE_B.centerScale,
+  adjacentScale: number = PHASE_B.adjacentScale,
+  otherScale: number = PHASE_B.otherScale,
+): number {
   if (absSlot <= 1) {
-    return (
-      PHASE_B.centerScale -
-      (PHASE_B.centerScale - PHASE_B.adjacentScale) * absSlot
-    );
+    return centerScale - (centerScale - adjacentScale) * absSlot;
   }
   if (absSlot <= 2) {
-    return (
-      PHASE_B.adjacentScale -
-      (PHASE_B.adjacentScale - PHASE_B.otherScale) * (absSlot - 1)
-    );
+    return adjacentScale - (adjacentScale - otherScale) * (absSlot - 1);
   }
-  return PHASE_B.otherScale;
+  return otherScale;
+}
+
+// ---------------------------------------------------------------------------
+// Mobile: enter vertical mode directly (no horizontal → vertical transition)
+// ---------------------------------------------------------------------------
+
+export interface EnterVerticalDirectlyArgs {
+  strip: HTMLElement;
+  visible: { el: HTMLElement; r: DOMRect }[];
+  nonCanonicalEls: HTMLElement[];
+  vState: VerticalState;
+  cardW: number;
+  cardH: number;
+}
+
+export function enterVerticalDirectly(args: EnterVerticalDirectlyArgs) {
+  const { strip, visible, nonCanonicalEls, vState, cardW, cardH } = args;
+  const n = visible.length;
+
+  // Prepare strip — free card movement.
+  const savedScrollLeft = strip.scrollLeft;
+  const innerDivs = Array.from(strip.children) as HTMLElement[];
+  gsap.set(innerDivs, { x: -savedScrollLeft });
+  strip.scrollLeft = 0;
+  strip.style.overflow = "visible";
+
+  // Non-canonicals: hide.
+  gsap.set(nonCanonicalEls, { opacity: 0, pointerEvents: "none" });
+
+  // Apply vertical title font.
+  visible.forEach(({ el }) => {
+    const titleSpan = el.querySelector<HTMLElement>("div > span:first-child");
+    if (titleSpan) {
+      titleSpan.style.fontSize = VERTICAL_TITLE.fontSize;
+      titleSpan.style.letterSpacing = VERTICAL_TITLE.letterSpacing;
+    }
+  });
+
+  // Make cards clickable.
+  vState.cards.forEach((c) => {
+    c.el.style.cursor = "pointer";
+    c.el.style.pointerEvents = "auto";
+  });
+
+  // Position every canonical card at its vertical slot (no animation).
+  const p4X = vState.columnX + (cardW * vState.centerScale) / 2;
+  visible.forEach(({ el, r }, i) => {
+    const curCx = r.left - strip.getBoundingClientRect().left + cardW / 2;
+    const curCy = r.top - strip.getBoundingClientRect().top + cardH / 2;
+
+    const halfN = n / 2;
+    let slotOffset = i - vState.safeClickedIdx;
+    slotOffset = ((slotOffset % n) + n) % n;
+    if (slotOffset >= halfN) slotOffset -= n;
+
+    const absSlot = Math.abs(slotOffset);
+    const slotSign = Math.sign(slotOffset);
+    const yOffset = computeSlotY(
+      absSlot,
+      slotSign,
+      vState.step01,
+      vState.step12,
+      vState.stepOther,
+    );
+    const scale = computeSlotScale(
+      absSlot,
+      vState.centerScale,
+      vState.adjacentScale,
+      vState.otherScale,
+    );
+    const targetY = vState.clickedCy + yOffset;
+
+    gsap.set(el, {
+      x: p4X - curCx,
+      y: targetY - curCy,
+      scale,
+      zIndex: i === vState.safeClickedIdx ? 100 : 80 - absSlot,
+      transformOrigin: "50% 50%",
+    });
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -106,6 +185,13 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   const fullWinW = window.innerWidth;
   const effectiveVpH = Math.max(vpH, fullWinH - vpRect.top - 24);
 
+  // Mobile uses smaller scale tiers so more cards fit on screen.
+  const isSmall = fullWinW < 768;
+  const centerScale = isSmall ? 0.26 : PHASE_B.centerScale;
+  const adjacentScale = isSmall ? 0.2 : PHASE_B.adjacentScale;
+  const otherScale = isSmall ? 0.14 : PHASE_B.otherScale;
+  const gap = isSmall ? 14 : PHASE_B.gap;
+
   // --- Compute dynamic columnX: center card between VOX logo and close button ---
   const PADDING = 24;
   const logoEl = document.querySelector<HTMLElement>("[data-vox-logo]");
@@ -117,20 +203,26 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   const closeButtonWidth = 22 + 8; // button + offset
   const rightBoundary = panelLeft - closeButtonWidth - vpRect.left;
 
-  const pBCenterCw = cardW * PHASE_B.centerScale;
-  const safeLeft = logoRight + PADDING;
-  const safeRight = rightBoundary - PADDING;
-  // Left-biased: place card's left edge right after logo, but never past the right safe zone.
-  const maxColumnX = Math.max(PADDING, safeRight - pBCenterCw);
-  const dynamicColumnX = Math.max(PADDING, Math.min(safeLeft, maxColumnX));
+  const pBCenterCw = cardW * centerScale;
+  const isMobile = isSmall;
+  let dynamicColumnX: number;
+  if (isMobile) {
+    // Mobile: center card horizontally (full-screen, no panel).
+    dynamicColumnX = (fullWinW - pBCenterCw) / 2;
+  } else {
+    const safeLeft = logoRight + PADDING;
+    const safeRight = rightBoundary - PADDING;
+    const maxColumnX = Math.max(PADDING, safeRight - pBCenterCw);
+    dynamicColumnX = Math.max(PADDING, Math.min(safeLeft, maxColumnX));
+  }
 
-  const pBCenterCh = cardH * PHASE_B.centerScale;
-  const pBAdjCh = cardH * PHASE_B.adjacentScale;
-  const pBOtherCh = cardH * PHASE_B.otherScale;
+  const pBCenterCh = cardH * centerScale;
+  const pBAdjCh = cardH * adjacentScale;
+  const pBOtherCh = cardH * otherScale;
 
-  const step01 = pBCenterCh / 2 + PHASE_B.gap + pBAdjCh / 2;
-  const step12 = pBAdjCh / 2 + PHASE_B.gap + pBOtherCh / 2;
-  const stepOther = pBOtherCh + PHASE_B.gap;
+  const step01 = pBCenterCh / 2 + gap + pBAdjCh / 2;
+  const step12 = pBAdjCh / 2 + gap + pBOtherCh / 2;
+  const stepOther = pBOtherCh + gap;
   const minStepY = step01;
   const bufferY = pBCenterCh;
   const stepY = Math.max(minStepY, (effectiveVpH + 2 * bufferY) / n);
@@ -151,9 +243,9 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
     step12,
     stepOther,
     clickedCy,
-    centerScale: PHASE_B.centerScale,
-    adjacentScale: PHASE_B.adjacentScale,
-    otherScale: PHASE_B.otherScale,
+    centerScale,
+    adjacentScale,
+    otherScale,
     savedScrollLeft: ctx.strip.scrollLeft,
     safeClickedIdx,
     horizontalStride: cardW + config.gap,
@@ -213,7 +305,7 @@ export function createChoreographyTimeline(
   });
 
   // Compute column X position.
-  const pBCenterCw = cardW * PHASE_B.centerScale;
+  const pBCenterCw = cardW * vState.centerScale;
   const p4X = vState.columnX + pBCenterCw / 2;
   const pBClickedCy = vState.clickedCy;
 

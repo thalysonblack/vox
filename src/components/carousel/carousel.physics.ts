@@ -65,7 +65,12 @@ export function createTickHandler(ctx: TickContext): () => void {
         const sign = Math.sign(slotOff);
         const yOffset = computeSlotY(absOff, sign, v.step01, v.step12, v.stepOther);
         const y = v.clickedCy + yOffset;
-        const scale = computeSlotScale(absOff);
+        const scale = computeSlotScale(
+          absOff,
+          v.centerScale,
+          v.adjacentScale,
+          v.otherScale,
+        );
 
         // Active card visual state.
         const titleRow = c.el.firstElementChild as HTMLElement | null;

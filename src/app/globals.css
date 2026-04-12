@@ -16,7 +16,7 @@
 }
 @media (max-width: 767px) {
   :root {
-    --pc-w: min(78vw, 420px);
+    --pc-w: min(72vw, 380px);
   }
 }
 

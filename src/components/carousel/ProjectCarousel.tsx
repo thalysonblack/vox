@@ -3,7 +3,6 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { gsap } from "gsap";
 import ProjectCard from "@/components/card/ProjectCard";
-import MobileVerticalStack from "./MobileVerticalStack";
 import ProjectDetailPanel from "@/components/detail/ProjectDetailPanel";
 import { carouselConfig as config } from "@/lib/carouselConfig";
 import { TIMING } from "./carousel.constants";
@@ -14,6 +13,7 @@ import {
   buildVerticalState,
   createChoreographyTimeline,
   createReverseTimeline,
+  enterVerticalDirectly,
 } from "./carousel.animations";
 import { createTickHandler } from "./carousel.physics";
 import {
@@ -82,6 +82,7 @@ export default function ProjectCarousel({
   const nonCanonicalElsRef = useRef<HTMLElement[]>([]);
   const wheelAccumRef = useRef(0);
   const vStateRef = useRef<VerticalState | null>(null);
+  const isMobileRef = useRef(false);
 
   // -----------------------------------------------------------------------
   // Open detail panel
@@ -231,6 +232,13 @@ export default function ProjectCarousel({
       window.history.pushState({}, "", "/");
     }
 
+    // Mobile: stay in vertical mode, don't reverse to horizontal.
+    if (isMobileRef.current) {
+      setTimeout(() => setSelectedProject(null), 500);
+      onDetailClose?.();
+      return;
+    }
+
     if (modeRef.current === "vertical" && vStateRef.current && stripRef.current) {
       isAnimatingRef.current = true;
       gsap.killTweensOf(posRef.current);
@@ -341,6 +349,45 @@ export default function ProjectCarousel({
     ro.observe(set1);
     window.addEventListener("resize", updateSetWidth);
 
+    // Mobile: auto-enter vertical mode directly (no horizontal → vertical transition).
+    const maybeEnterMobileVertical = () => {
+      if (modeRef.current === "vertical") return;
+      if (window.innerWidth >= 768) return;
+      const { visible, nonCanonicalEls } = resolveCanonicalCards(
+        strip,
+        projectsRef.current,
+      );
+      if (visible.length === 0) return;
+      const cardW = visible[0].r.width;
+      const cardH = visible[0].r.height;
+      const vpRect = strip.getBoundingClientRect();
+      const vState = buildVerticalState({
+        strip,
+        visible,
+        vpRect,
+        safeClickedIdx: 0,
+        cardW,
+        cardH,
+      });
+      vStateRef.current = vState;
+      nonCanonicalElsRef.current = nonCanonicalEls;
+      isMobileRef.current = true;
+      modeRef.current = "vertical";
+      enterVerticalDirectly({
+        strip,
+        visible,
+        nonCanonicalEls,
+        vState,
+        cardW,
+        cardH,
+      });
+      posRef.current.target = 0;
+      posRef.current.current = 0;
+      impulseRef.current = 0;
+    };
+    // Wait one frame for layout to settle (card widths depend on CSS vars).
+    requestAnimationFrame(() => requestAnimationFrame(maybeEnterMobileVertical));
+
     // Physics tick.
     const onTick = createTickHandler({
       getPos: () => posRef.current,
@@ -419,8 +466,7 @@ export default function ProjectCarousel({
 
   return (
     <>
-      {/* Desktop: horizontal infinite carousel with choreography */}
-      <div className={`hidden min-h-0 flex-1 justify-center md:flex ${vAlignClass}`}>
+      <div className={`flex min-h-0 flex-1 justify-center ${vAlignClass}`}>
         <section
           ref={stripRef}
           className="scrollbar-hide flex w-full touch-none cursor-grab overflow-x-auto overflow-y-hidden active:cursor-grabbing"
@@ -458,12 +504,6 @@ export default function ProjectCarousel({
           </div>
         </section>
       </div>
-
-      {/* Mobile: vertical snap carousel — behaves like the desktop vertical mode */}
-      <MobileVerticalStack
-        projects={projects}
-        onTapProject={openDetailForProject}
-      />
 
       {selectedProject && (
         <ProjectDetailPanel

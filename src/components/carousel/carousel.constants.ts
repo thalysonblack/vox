@@ -68,3 +68,37 @@ export const INTERACTION = {
   /** Active card slot threshold (|slotOff| < this = active) */
   activeSlotThreshold: 0.5,
 } as const;
+
+// --- Easing curves (GSAP names) ---
+export const EASE = {
+  /** Entry / expansion from center (dramatic decay) */
+  enter: "expo.out",
+  /** Snap to slot after scroll stops (crisp, brief) */
+  snap: "power2.out",
+  /** Reverse / close animation (Lenis-style tail) */
+  reverse: "expo.out",
+} as const;
+
+// --- Mobile vertical physics (momentum + free-scroll snap) ---
+export const MOBILE_PHYSICS = {
+  /** Friction coefficient per frame (higher = longer glide) */
+  friction: 0.99,
+  /** Lag factor for pos.current chasing pos.target (higher = smoother) */
+  smoothLag: 0.93,
+  /** Multiplier applied to wheel deltaY to produce impulse */
+  wheelImpulse: 1.2,
+  /** Fling multiplier applied to last drag velocity */
+  flingMultiplier: 5,
+  /** Idle time before snap animation kicks in (ms) */
+  snapDelay: 1600,
+  /** Final snap tween duration */
+  snapDuration: 0.5,
+  /** Mobile-specific scale boost over desktop PHASE_B tiers */
+  scaleBoost: 1.3,
+} as const;
+
+// --- Desktop horizontal physics ---
+export const DESKTOP_PHYSICS = {
+  /** Friction coefficient per frame */
+  friction: 0.98,
+} as const;

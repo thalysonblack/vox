@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useState } from "react";
 import Nav from "@/components/nav/Nav";
-import Footer from "@/components/footer/Footer";
 import ProjectCarousel from "@/components/carousel/ProjectCarousel";
 import type { ProjectListItem } from "@/types/project";
 
@@ -43,15 +42,6 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
         />
       </div>
 
-      <div
-        className={`pointer-events-none absolute inset-x-0 bottom-0 z-[100] px-3 pb-3 transition-opacity duration-300 ${
-          detailOpen ? "opacity-0" : "opacity-100"
-        }`}
-      >
-        <div className="pointer-events-auto">
-          <Footer />
-        </div>
-      </div>
     </div>
   );
 }

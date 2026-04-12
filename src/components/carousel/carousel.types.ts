@@ -6,6 +6,8 @@ export interface DragState {
   lastX: number;
   lastDx: number;
   startTarget: EventTarget | null;
+  /** pos.target at drag start — used for free-move + snap in vertical mode */
+  startTargetPos: number;
 }
 
 export interface CardState {

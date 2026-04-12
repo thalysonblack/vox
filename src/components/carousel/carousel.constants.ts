@@ -33,9 +33,9 @@ export const TIMING = {
   /** Reverse animation duration */
   reverseDur: 0.85,
   /** Vertical snap scroll duration */
-  verticalSnapDur: 0.45,
+  verticalSnapDur: 0.25,
   /** Vertical tap-scroll duration */
-  verticalTapScrollDur: 0.55,
+  verticalTapScrollDur: 0.35,
   /** Duplicate fade-out duration */
   dupFadeOutDur: 0.4,
   /** Duplicate fade-out delay */

@@ -56,6 +56,27 @@ export interface EventContext {
 // ---------------------------------------------------------------------------
 
 export function createWheelHandler(ctx: EventContext) {
+  let snapTimer: number | null = null;
+
+  const scheduleSnap = (delay: number) => {
+    if (snapTimer !== null) window.clearTimeout(snapTimer);
+    snapTimer = window.setTimeout(() => {
+      snapTimer = null;
+      const vState = ctx.getVState();
+      if (!vState) return;
+      const pos = ctx.getPos();
+      ctx.setImpulse(0);
+      const nearest = Math.round(pos.target / vState.stepY) * vState.stepY;
+      gsap.killTweensOf(pos);
+      gsap.to(pos, {
+        target: nearest,
+        current: nearest,
+        duration: 0.5,
+        ease: "power2.out",
+      });
+    }, delay);
+  };
+
   return (e: WheelEvent) => {
     if (e.deltaY === 0) return;
     const target = e.target as Element | null;
@@ -63,16 +84,11 @@ export function createWheelHandler(ctx: EventContext) {
     e.preventDefault();
 
     if (ctx.getMode() === "vertical") {
-      const accum = ctx.getWheelAccum() + e.deltaY;
-      ctx.setWheelAccum(accum);
-      if (Math.abs(accum) >= INTERACTION.wheelThreshold) {
-        const dir = Math.sign(accum);
-        ctx.setWheelAccum(0);
-        const vState = ctx.getVState();
-        if (vState) {
-          advanceVerticalCard(dir, ctx.getPos(), vState, ctx.setImpulse);
-        }
-      }
+      // Inject impulse — tick applies it to pos.target with friction decay,
+      // so the carousel visibly "runs" before slowing to a stop.
+      gsap.killTweensOf(ctx.getPos());
+      ctx.setImpulse(ctx.getImpulse() - e.deltaY * 1.2);
+      scheduleSnap(1600);
       return;
     }
     ctx.setImpulse(ctx.getImpulse() - e.deltaY * config.wheel);
@@ -90,12 +106,15 @@ export function createPointerHandlers(ctx: EventContext) {
     ctx.setPointer(e.pointerId);
     ctx.strip.setPointerCapture?.(e.pointerId);
     ctx.setImpulse(0);
+    const pos = ctx.getPos();
+    gsap.killTweensOf(pos);
     ctx.setDrag({
       active: true,
       startX: ctx.getMode() === "vertical" ? e.clientY : e.clientX,
       lastX: ctx.getMode() === "vertical" ? e.clientY : e.clientX,
       lastDx: 0,
       startTarget: e.target,
+      startTargetPos: pos.target,
     });
   };
 
@@ -106,7 +125,14 @@ export function createPointerHandlers(ctx: EventContext) {
     const axis = ctx.getMode() === "vertical" ? e.clientY : e.clientX;
     const dx = (axis - d.lastX) * config.dragSensitivity;
     ctx.setDrag({ ...d, lastX: axis, lastDx: dx });
-    if (ctx.getMode() === "vertical") return;
+    if (ctx.getMode() === "vertical") {
+      // Free-move: cards follow the finger continuously.
+      const pos = ctx.getPos();
+      const delta = axis - d.startX;
+      pos.target = d.startTargetPos + delta;
+      pos.current = pos.target;
+      return;
+    }
     ctx.setImpulse(-dx);
   };
 
@@ -130,16 +156,40 @@ export function createPointerHandlers(ctx: EventContext) {
           const project = ctx.getProjects().find((p) => p.id === projectId);
           if (project) ctx.onTap(project, cardEl);
         }
-      } else {
-        // Drag steps
-        const delta = axisUp - d.startX;
-        const steps = Math.round(totalDrag / INTERACTION.dragStepPx);
-        const dir = delta < 0 ? 1 : -1;
+        // Snap back on tiny drag (below threshold).
         const vState = ctx.getVState();
         if (vState) {
-          for (let i = 0; i < steps; i++) {
-            advanceVerticalCard(dir, ctx.getPos(), vState, ctx.setImpulse);
-          }
+          const pos = ctx.getPos();
+          const nearest =
+            Math.round(pos.target / vState.stepY) * vState.stepY;
+          gsap.to(pos, {
+            target: nearest,
+            current: nearest,
+            duration: 0.25,
+            ease: "power2.out",
+          });
+        }
+      } else {
+        // Fling: apply momentum impulse from last drag velocity, let it decay,
+        // then snap to nearest slot after idle.
+        const flingImpulse = d.lastDx * 5;
+        ctx.setImpulse(flingImpulse);
+
+        const vState = ctx.getVState();
+        if (vState) {
+          window.setTimeout(() => {
+            const pos = ctx.getPos();
+            ctx.setImpulse(0);
+            const nearest =
+              Math.round(pos.target / vState.stepY) * vState.stepY;
+            gsap.killTweensOf(pos);
+            gsap.to(pos, {
+              target: nearest,
+              current: nearest,
+              duration: 0.5,
+              ease: "power2.out",
+            });
+          }, 1600);
         }
       }
       return;

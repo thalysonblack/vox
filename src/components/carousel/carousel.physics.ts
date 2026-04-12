@@ -31,16 +31,20 @@ export function createTickHandler(ctx: TickContext): () => void {
 
     const pos = ctx.getPos();
     const dt = gsap.ticker.deltaRatio(60);
+    const isVertical = ctx.getMode() === "vertical";
 
-    // Apply friction to impulse.
-    const friction = Math.pow(0.98, dt);
+    // Apply friction to impulse — gentler in vertical mode for longer glide.
+    const frictionBase = isVertical ? 0.99 : 0.98;
+    const friction = Math.pow(frictionBase, dt);
     let impulse = ctx.getImpulse() * friction;
     if (Math.abs(impulse) < 0.01) impulse = 0;
     ctx.setImpulse(impulse);
 
     // Advance target and ease current toward it.
     pos.target += impulse * dt;
-    const ease = 1 - Math.pow(config.smooth, dt);
+    // Vertical uses smoother lag (pos.current chases pos.target slowly).
+    const smoothBase = isVertical ? 0.93 : config.smooth;
+    const ease = 1 - Math.pow(smoothBase, dt);
     const diff = pos.target - pos.current;
     if (Math.abs(diff) < 0.3) {
       pos.current = pos.target;

@@ -11,15 +11,18 @@
   --background: #fdfdfc;
   --foreground: #000000;
   /* Fluid project card sizing — preserves 446:601 aspect ratio (ratio 1.348). */
-  --pc-w: clamp(180px, 20vw, 446px);
+  --pc-w: clamp(216px, 24vw, 535px);
   --pc-h: calc(var(--pc-w) * 1.348);
 }
 @media (max-width: 767px) {
   :root {
-    --pc-w: min(72vw, 380px);
+    --pc-w: 70vw;
+  }
+  /* Mobile only: hide strip until vertical mode is applied to avoid flash. */
+  [data-carousel-strip]:not([data-mobile-ready="true"]) {
+    opacity: 0;
   }
 }
-
 @layer base {
   body {
     background: var(--background);

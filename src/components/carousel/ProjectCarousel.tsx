@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useLayoutEffect, useState, useCallback } from "react";
 import { gsap } from "gsap";
 import ProjectCard from "@/components/card/ProjectCard";
 import ProjectDetailPanel from "@/components/detail/ProjectDetailPanel";
@@ -53,6 +53,9 @@ export default function ProjectCarousel({
   // --- Repeat projects inside each set so set width always >= viewport ---
   const [repeats, setRepeats] = useState(1);
 
+  // --- Strip visibility (hidden until vertical setup done on mobile) ---
+  const [stripVisible, setStripVisible] = useState(false);
+
   // --- Scroll physics state (mutable refs, not React state) ---
   const setWidthRef = useRef(0);
   const posRef = useRef<ScrollPosition>({ target: 0, current: 0 });
@@ -63,6 +66,7 @@ export default function ProjectCarousel({
     lastX: 0,
     lastDx: 0,
     startTarget: null,
+    startTargetPos: 0,
   });
   const pointerRef = useRef(0);
 
@@ -305,6 +309,8 @@ export default function ProjectCarousel({
 
   useEffect(() => {
     if (initialSlug || hasEnteredRef.current) return;
+    // Skip on mobile — we're in vertical mode already, this would clobber positions.
+    if (typeof window !== "undefined" && window.innerWidth < 768) return;
     const set1 = set1Ref.current;
     if (!set1) return;
     hasEnteredRef.current = true;
@@ -325,41 +331,31 @@ export default function ProjectCarousel({
   }, [initialSlug]);
 
   // -----------------------------------------------------------------------
-  // Main effect: physics tick + event listeners
+  // Mobile: enter vertical mode BEFORE paint to avoid horizontal flash
   // -----------------------------------------------------------------------
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
     const strip = stripRef.current;
-    const set1 = set1Ref.current;
-    if (!strip || !set1) return;
+    if (!strip) return;
 
-    // Track set width for infinite-loop wrapping + auto-repeat projects.
-    const updateSetWidth = () => {
-      setWidthRef.current = set1.offsetWidth + config.gap;
-      // Ensure set1 width always exceeds viewport so the 2-set wrap has no gaps.
-      const viewportW = window.innerWidth;
-      const naturalSetW = set1.offsetWidth;
-      if (naturalSetW > 0) {
-        const needed = Math.max(1, Math.ceil((viewportW * 1.2) / (naturalSetW / repeats)));
-        if (needed !== repeats) setRepeats(needed);
-      }
-    };
-    updateSetWidth();
-    const ro = new ResizeObserver(updateSetWidth);
-    ro.observe(set1);
-    window.addEventListener("resize", updateSetWidth);
+    if (window.innerWidth >= 768) {
+      setStripVisible(true);
+      return;
+    }
 
-    // Mobile: auto-enter vertical mode directly (no horizontal → vertical transition).
-    const maybeEnterMobileVertical = () => {
+    isMobileRef.current = true;
+
+    const runEnter = () => {
       if (modeRef.current === "vertical") return;
-      if (window.innerWidth >= 768) return;
       const { visible, nonCanonicalEls } = resolveCanonicalCards(
         strip,
         projectsRef.current,
       );
-      if (visible.length === 0) return;
+      if (visible.length === 0) return false;
       const cardW = visible[0].r.width;
       const cardH = visible[0].r.height;
+      if (cardW === 0 || cardH === 0) return false;
       const vpRect = strip.getBoundingClientRect();
       const vState = buildVerticalState({
         strip,
@@ -371,7 +367,6 @@ export default function ProjectCarousel({
       });
       vStateRef.current = vState;
       nonCanonicalElsRef.current = nonCanonicalEls;
-      isMobileRef.current = true;
       modeRef.current = "vertical";
       enterVerticalDirectly({
         strip,
@@ -384,9 +379,48 @@ export default function ProjectCarousel({
       posRef.current.target = 0;
       posRef.current.current = 0;
       impulseRef.current = 0;
+      setStripVisible(true);
+      return true;
     };
-    // Wait one frame for layout to settle (card widths depend on CSS vars).
-    requestAnimationFrame(() => requestAnimationFrame(maybeEnterMobileVertical));
+
+    if (!runEnter()) {
+      // Cards not measured yet — retry on next frame.
+      const rafId = requestAnimationFrame(() => {
+        runEnter();
+      });
+      return () => cancelAnimationFrame(rafId);
+    }
+  }, []);
+
+  // -----------------------------------------------------------------------
+  // Main effect: physics tick + event listeners
+  // -----------------------------------------------------------------------
+
+  useEffect(() => {
+    const strip = stripRef.current;
+    const set1 = set1Ref.current;
+    if (!strip || !set1) return;
+
+    const isMobile = window.innerWidth < 768;
+    isMobileRef.current = isMobile;
+
+    // Track set width for infinite-loop wrapping + auto-repeat projects.
+    // Skip repeats recomputation on mobile (we use vertical mode, no loop).
+    const updateSetWidth = () => {
+      setWidthRef.current = set1.offsetWidth + config.gap;
+      if (isMobileRef.current) return;
+      const viewportW = window.innerWidth;
+      const naturalSetW = set1.offsetWidth;
+      if (naturalSetW > 0) {
+        const needed = Math.max(1, Math.ceil((viewportW * 1.2) / (naturalSetW / repeats)));
+        if (needed !== repeats) setRepeats(needed);
+      }
+    };
+    updateSetWidth();
+    const ro = new ResizeObserver(updateSetWidth);
+    ro.observe(set1);
+    window.addEventListener("resize", updateSetWidth);
+
 
     // Physics tick.
     const onTick = createTickHandler({
@@ -469,6 +503,8 @@ export default function ProjectCarousel({
       <div className={`flex min-h-0 flex-1 justify-center ${vAlignClass}`}>
         <section
           ref={stripRef}
+          data-carousel-strip=""
+          data-mobile-ready={stripVisible ? "true" : undefined}
           className="scrollbar-hide flex w-full touch-none cursor-grab overflow-x-auto overflow-y-hidden active:cursor-grabbing"
           aria-label="Carousel de projetos"
           role="region"

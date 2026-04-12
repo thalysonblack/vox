@@ -20,7 +20,6 @@ import {
   createWheelHandler,
   createPointerHandlers,
   createClickDelegate,
-  advanceVerticalCard,
 } from "./carousel.events";
 
 // ---------------------------------------------------------------------------
@@ -52,9 +51,6 @@ export default function ProjectCarousel({
 
   // --- Repeat projects inside each set so set width always >= viewport ---
   const [repeats, setRepeats] = useState(1);
-
-  // --- Strip visibility (hidden until vertical setup done on mobile) ---
-  const [stripVisible, setStripVisible] = useState(false);
 
   // --- Scroll physics state (mutable refs, not React state) ---
   const setWidthRef = useRef(0);
@@ -339,7 +335,7 @@ export default function ProjectCarousel({
     if (!strip) return;
 
     if (window.innerWidth >= 768) {
-      setStripVisible(true);
+      strip.dataset.mobileReady = "true";
       return;
     }
 
@@ -378,7 +374,7 @@ export default function ProjectCarousel({
       posRef.current.target = 0;
       posRef.current.current = 0;
       impulseRef.current = 0;
-      setStripVisible(true);
+      strip.dataset.mobileReady = "true";
       return true;
     };
 
@@ -405,7 +401,7 @@ export default function ProjectCarousel({
 
     // Track set width for infinite-loop wrapping + auto-repeat projects.
     // Skip repeats recomputation on mobile (we use vertical mode, no loop).
-    const updateSetWidth = () => {
+    const doUpdateSetWidth = () => {
       // Measure the actual distance from set1's left edge to set2's left edge
       // — this is the true wrap distance regardless of padding / gap config.
       const set2 = set1.nextElementSibling as HTMLElement | null;
@@ -424,7 +420,16 @@ export default function ProjectCarousel({
         if (needed !== repeats) setRepeats(needed);
       }
     };
-    updateSetWidth();
+    // Debounce via rAF — coalesce rapid ResizeObserver/resize callbacks to a single update per frame.
+    let updateRaf = 0;
+    const updateSetWidth = () => {
+      if (updateRaf) return;
+      updateRaf = requestAnimationFrame(() => {
+        updateRaf = 0;
+        doUpdateSetWidth();
+      });
+    };
+    doUpdateSetWidth();
     const ro = new ResizeObserver(updateSetWidth);
     ro.observe(set1);
     window.addEventListener("resize", updateSetWidth);
@@ -473,6 +478,7 @@ export default function ProjectCarousel({
     document.addEventListener("click", onDocClick);
 
     return () => {
+      if (updateRaf) cancelAnimationFrame(updateRaf);
       ro.disconnect();
       window.removeEventListener("resize", updateSetWidth);
       gsap.ticker.remove(onTick);
@@ -482,7 +488,6 @@ export default function ProjectCarousel({
       window.removeEventListener("pointerup", onPointerUp);
       document.removeEventListener("click", onDocClick);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [repeats]);
 
   // -----------------------------------------------------------------------
@@ -512,7 +517,6 @@ export default function ProjectCarousel({
         <section
           ref={stripRef}
           data-carousel-strip=""
-          data-mobile-ready={stripVisible ? "true" : undefined}
           className="scrollbar-hide flex w-full touch-none cursor-grab overflow-x-auto overflow-y-hidden active:cursor-grabbing"
           aria-label="Carousel de projetos"
           role="region"
@@ -534,7 +538,8 @@ export default function ProjectCarousel({
                 <ProjectCard
                   key={`s1-${r}-${project.id}`}
                   project={project}
-                  isFirst={r === 0 && i === 0}
+                  // First 3 cards of the first set — all likely LCP candidates on wide viewports.
+                  isFirst={r === 0 && i < 3}
                 />
               )),
             )}

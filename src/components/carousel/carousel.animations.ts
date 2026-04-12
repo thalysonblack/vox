@@ -4,7 +4,12 @@
  */
 import { gsap } from "gsap";
 import { carouselConfig as config } from "@/lib/carouselConfig";
-import { PHASE_B, TIMING, VERTICAL_TITLE } from "./carousel.constants";
+import {
+  MOBILE_PHYSICS,
+  PHASE_B,
+  TIMING,
+  VERTICAL_TITLE,
+} from "./carousel.constants";
 import type { CardState, VerticalState, ScrollPosition } from "./carousel.types";
 import type { ProjectListItem } from "@/types/project";
 
@@ -187,7 +192,7 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
 
   // Mobile uses the same vertical carousel as desktop, but 30% bigger.
   const isSmall = fullWinW < 768;
-  const scaleBoost = isSmall ? 1.3 : 1;
+  const scaleBoost = isSmall ? MOBILE_PHYSICS.scaleBoost : 1;
   const centerScale = PHASE_B.centerScale * scaleBoost;
   const adjacentScale = PHASE_B.adjacentScale * scaleBoost;
   const otherScale = PHASE_B.otherScale * scaleBoost;

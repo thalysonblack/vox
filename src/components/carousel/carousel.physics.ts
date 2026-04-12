@@ -4,7 +4,12 @@
  */
 import { gsap } from "gsap";
 import { carouselConfig as config } from "@/lib/carouselConfig";
-import { ACTIVE_CARD_STYLE, INTERACTION } from "./carousel.constants";
+import {
+  ACTIVE_CARD_STYLE,
+  DESKTOP_PHYSICS,
+  INTERACTION,
+  MOBILE_PHYSICS,
+} from "./carousel.constants";
 import { computeSlotY, computeSlotScale } from "./carousel.animations";
 import type { ScrollPosition, VerticalState } from "./carousel.types";
 
@@ -34,7 +39,9 @@ export function createTickHandler(ctx: TickContext): () => void {
     const isVertical = ctx.getMode() === "vertical";
 
     // Apply friction to impulse — gentler in vertical mode for longer glide.
-    const frictionBase = isVertical ? 0.99 : 0.98;
+    const frictionBase = isVertical
+      ? MOBILE_PHYSICS.friction
+      : DESKTOP_PHYSICS.friction;
     const friction = Math.pow(frictionBase, dt);
     let impulse = ctx.getImpulse() * friction;
     if (Math.abs(impulse) < 0.01) impulse = 0;
@@ -43,7 +50,7 @@ export function createTickHandler(ctx: TickContext): () => void {
     // Advance target and ease current toward it.
     pos.target += impulse * dt;
     // Vertical uses smoother lag (pos.current chases pos.target slowly).
-    const smoothBase = isVertical ? 0.93 : config.smooth;
+    const smoothBase = isVertical ? MOBILE_PHYSICS.smoothLag : config.smooth;
     const ease = 1 - Math.pow(smoothBase, dt);
     const diff = pos.target - pos.current;
     if (Math.abs(diff) < 0.3) {
@@ -85,7 +92,10 @@ export function createTickHandler(ctx: TickContext): () => void {
           titleRow.style.paddingLeft = isActive ? ACTIVE_CARD_STYLE.paddingX : "";
           titleRow.style.paddingRight = isActive ? ACTIVE_CARD_STYLE.paddingX : "";
         }
-        gsap.set(c.el, { y: y - c.curCy, scale });
+        // Hot path: use pre-cached quickSetters (created in buildVerticalState)
+        // instead of gsap.set for ~3x less overhead per frame.
+        c.setY(y - c.curCy);
+        c.setScale(scale);
       }
       return;
     }

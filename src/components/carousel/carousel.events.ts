@@ -4,7 +4,7 @@
  */
 import { gsap } from "gsap";
 import { carouselConfig as config } from "@/lib/carouselConfig";
-import { INTERACTION, TIMING } from "./carousel.constants";
+import { EASE, INTERACTION, MOBILE_PHYSICS, TIMING } from "./carousel.constants";
 import { unlockTick } from "./carousel.tick";
 import type { DragState, ScrollPosition, VerticalState } from "./carousel.types";
 import type { ProjectListItem } from "@/types/project";
@@ -71,8 +71,8 @@ export function createWheelHandler(ctx: EventContext) {
       gsap.to(pos, {
         target: nearest,
         current: nearest,
-        duration: 0.5,
-        ease: "power2.out",
+        duration: MOBILE_PHYSICS.snapDuration,
+        ease: EASE.snap,
       });
     }, delay);
   };
@@ -87,8 +87,8 @@ export function createWheelHandler(ctx: EventContext) {
       // Inject impulse — tick applies it to pos.target with friction decay,
       // so the carousel visibly "runs" before slowing to a stop.
       gsap.killTweensOf(ctx.getPos());
-      ctx.setImpulse(ctx.getImpulse() - e.deltaY * 1.2);
-      scheduleSnap(1600);
+      ctx.setImpulse(ctx.getImpulse() - e.deltaY * MOBILE_PHYSICS.wheelImpulse);
+      scheduleSnap(MOBILE_PHYSICS.snapDelay);
       return;
     }
     ctx.setImpulse(ctx.getImpulse() - e.deltaY * config.wheel);
@@ -166,13 +166,13 @@ export function createPointerHandlers(ctx: EventContext) {
             target: nearest,
             current: nearest,
             duration: 0.25,
-            ease: "power2.out",
+            ease: EASE.snap,
           });
         }
       } else {
         // Fling: apply momentum impulse from last drag velocity, let it decay,
         // then snap to nearest slot after idle.
-        const flingImpulse = d.lastDx * 5;
+        const flingImpulse = d.lastDx * MOBILE_PHYSICS.flingMultiplier;
         ctx.setImpulse(flingImpulse);
 
         const vState = ctx.getVState();
@@ -186,10 +186,10 @@ export function createPointerHandlers(ctx: EventContext) {
             gsap.to(pos, {
               target: nearest,
               current: nearest,
-              duration: 0.5,
-              ease: "power2.out",
+              duration: MOBILE_PHYSICS.snapDuration,
+              ease: EASE.snap,
             });
-          }, 1600);
+          }, MOBILE_PHYSICS.snapDelay);
         }
       }
       return;

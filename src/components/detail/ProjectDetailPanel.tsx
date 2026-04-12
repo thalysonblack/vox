@@ -199,19 +199,19 @@ export default function ProjectDetailPanel({
         data-scrollable-panel
         className="scrollbar-hide flex h-full flex-col overflow-y-auto"
       >
-        {/* Top section: Title (left) + meta column (right 50%) */}
-        <div className="flex shrink-0 flex-col items-start gap-6 px-[12px] pt-[12px] pb-[32px] md:flex-row md:justify-between md:gap-8 md:pb-[48px]">
+        {/* Top section: Title (left) + meta column (right) — 2-cols on all screens */}
+        <div className="flex shrink-0 flex-row items-start justify-between gap-4 px-[12px] pt-[12px] pb-[32px] md:gap-8 md:pb-[48px]">
           <h2
             data-reveal="header"
-            className="shrink-0 text-[24px] font-semibold leading-[1.09] tracking-[-0.72px] text-[#2d2f2f] md:text-[30px] md:tracking-[-0.91px]"
+            className="w-[25%] shrink-0 text-[18px] font-semibold leading-[1.09] tracking-[-0.54px] text-[#2d2f2f] md:w-auto md:text-[30px] md:tracking-[-0.91px]"
           >
             {project.name}
           </h2>
 
-          <div className="flex w-full shrink-0 flex-col md:w-[50%] md:max-w-[720px]">
+          <div className="flex flex-1 shrink-0 flex-col md:w-[50%] md:max-w-[720px] md:flex-none">
             <p
               data-reveal="header"
-              className="text-[15px] font-semibold leading-[1.4] tracking-[-0.455px] text-[#2d2f2f]"
+              className="text-[14px] font-semibold leading-[1.4] tracking-[-0.42px] text-[#2d2f2f] md:text-[15px] md:tracking-[-0.455px]"
             >
               {description}
             </p>
@@ -229,7 +229,7 @@ export default function ProjectDetailPanel({
                   {credits.map((credit) => (
                     <span
                       key={credit._key}
-                      className="text-[15px] font-semibold leading-[1.4] tracking-[-0.455px]"
+                      className="text-[14px] font-semibold leading-[1.4] tracking-[-0.42px] md:text-[15px] md:tracking-[-0.455px]"
                     >
                       <span className="text-[#2d2f2f]">{credit.name}</span>{" "}
                       <span className="text-[#959595]">{credit.role}</span>
@@ -243,7 +243,7 @@ export default function ProjectDetailPanel({
                   href={liveUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-[22px] ml-auto inline-flex shrink-0 items-center justify-between gap-[12px] bg-[#efefef] px-[9px] py-[3px] transition-colors hover:bg-black/[0.08]"
+                  className="mt-[16px] inline-flex w-full shrink-0 items-center justify-between gap-[12px] bg-[#efefef] px-[9px] py-[6px] transition-colors hover:bg-black/[0.08] md:mt-[22px] md:ml-auto md:w-auto md:py-[3px]"
                   style={{ minWidth: "122px" }}
                 >
                   <svg
@@ -255,7 +255,7 @@ export default function ProjectDetailPanel({
                   >
                     <path d="M0 0L6 4L0 8V0Z" />
                   </svg>
-                  <span className="text-[15px] font-semibold leading-[1.4] tracking-[-0.455px] text-[#2d2f2f]">
+                  <span className="text-[14px] font-semibold leading-[1.4] tracking-[-0.42px] text-[#2d2f2f] md:text-[15px] md:tracking-[-0.455px]">
                     Live Site
                   </span>
                 </a>

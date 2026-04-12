@@ -406,7 +406,16 @@ export default function ProjectCarousel({
     // Track set width for infinite-loop wrapping + auto-repeat projects.
     // Skip repeats recomputation on mobile (we use vertical mode, no loop).
     const updateSetWidth = () => {
-      setWidthRef.current = set1.offsetWidth + config.gap;
+      // Measure the actual distance from set1's left edge to set2's left edge
+      // — this is the true wrap distance regardless of padding / gap config.
+      const set2 = set1.nextElementSibling as HTMLElement | null;
+      if (set2) {
+        const set1Rect = set1.getBoundingClientRect();
+        const set2Rect = set2.getBoundingClientRect();
+        setWidthRef.current = set2Rect.left - set1Rect.left;
+      } else {
+        setWidthRef.current = set1.offsetWidth + config.gap;
+      }
       if (isMobileRef.current) return;
       const viewportW = window.innerWidth;
       const naturalSetW = set1.offsetWidth;

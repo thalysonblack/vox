@@ -86,9 +86,9 @@ export const MOBILE_PHYSICS = {
   /** Lag factor for pos.current chasing pos.target (higher = smoother) */
   smoothLag: 0.985,
   /** Multiplier applied to wheel deltaY to produce impulse */
-  wheelImpulse: 0.25,
+  wheelImpulse: 0.125,
   /** Fling multiplier applied to last drag velocity */
-  flingMultiplier: 2,
+  flingMultiplier: 1,
   /** Idle time before snap animation kicks in (ms) */
   snapDelay: 2500,
   /** Final snap tween duration */

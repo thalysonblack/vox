@@ -226,16 +226,12 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   const pBAdjCh = cardH * adjacentScale;
   const pBOtherCh = cardH * otherScale;
 
-  // Mobile: compress spacing so 5 cards are visible (center + 2 adjacent +
-  // 2 other slightly cropped at viewport edges). Desktop keeps the
-  // card-size-based formula with clean no-overlap stacking.
-  const step01 = isSmall
-    ? effectiveVpH * 0.2
-    : pBCenterCh / 2 + gap + pBAdjCh / 2;
-  const step12 = isSmall
-    ? effectiveVpH * 0.22
-    : pBAdjCh / 2 + gap + pBOtherCh / 2;
-  const stepOther = isSmall ? effectiveVpH * 0.22 : pBOtherCh + gap;
+  // Compressed viewport-based spacing so 5 cards are visible (center + 2
+  // adjacent + 2 outer slightly cropped at viewport edges). Cards may
+  // overlap slightly — center has the highest z-index so it stays on top.
+  const step01 = effectiveVpH * 0.2;
+  const step12 = effectiveVpH * 0.22;
+  const stepOther = effectiveVpH * 0.22;
   const minStepY = step01;
   const bufferY = pBCenterCh;
   const stepY = Math.max(minStepY, (effectiveVpH + 2 * bufferY) / n);

@@ -12,10 +12,12 @@ export const PHASE_A = {
 } as const;
 
 // --- Phase B: Vertical selector (3-tier progressive scale) ---
+// Scales chosen so 5 cards fit vertically without overlap (center + 2 adj
+// + 2 other slightly cropped at viewport edges) — see buildVerticalState.
 export const PHASE_B = {
   centerScale: 0.48,
-  adjacentScale: 0.38,
-  otherScale: 0.26,
+  adjacentScale: 0.3,
+  otherScale: 0.18,
   gap: 32,
   columnX: 40,
 } as const;

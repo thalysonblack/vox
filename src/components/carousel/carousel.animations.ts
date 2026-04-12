@@ -226,12 +226,12 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   const pBAdjCh = cardH * adjacentScale;
   const pBOtherCh = cardH * otherScale;
 
-  // Compressed viewport-based spacing so 5 cards are visible (center + 2
-  // adjacent + 2 outer slightly cropped at viewport edges). Cards may
-  // overlap slightly — center has the highest z-index so it stays on top.
-  const step01 = effectiveVpH * 0.2;
-  const step12 = effectiveVpH * 0.22;
-  const stepOther = effectiveVpH * 0.22;
+  // Card-size-based spacing guarantees a `gap` between every slot — no
+  // overlaps. Scales (see PHASE_B) are tuned so 5 cards still fit in the
+  // viewport with slot ±2 slightly cropped at the edges.
+  const step01 = pBCenterCh / 2 + gap + pBAdjCh / 2;
+  const step12 = pBAdjCh / 2 + gap + pBOtherCh / 2;
+  const stepOther = pBOtherCh + gap;
   const minStepY = step01;
   const bufferY = pBCenterCh;
   const stepY = Math.max(minStepY, (effectiveVpH + 2 * bufferY) / n);

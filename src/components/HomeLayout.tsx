@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Nav from "@/components/nav/Nav";
 import ProjectCarousel from "@/components/carousel/ProjectCarousel";
 import type { ProjectListItem } from "@/types/project";
@@ -12,7 +12,15 @@ interface HomeLayoutProps {
 
 export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
   const [detailOpen, setDetailOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const closeHandlerRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth < 768);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   const goHome = useCallback(() => {
     closeHandlerRef.current();
@@ -26,7 +34,7 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
     <div className="relative h-[100dvh] overflow-hidden bg-[#fdfdfc]">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[100] px-3 pt-3 pb-3">
         <div className="pointer-events-auto">
-          <Nav compact={detailOpen} onLogoClick={goHome} />
+          <Nav compact={detailOpen && !isMobile} onLogoClick={goHome} />
         </div>
       </div>
 

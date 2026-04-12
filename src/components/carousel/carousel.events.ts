@@ -81,16 +81,22 @@ export function createWheelHandler(ctx: EventContext) {
     if (e.deltaY === 0) return;
     const target = e.target as Element | null;
     if (target?.closest("[data-scrollable-panel]")) return;
-    e.preventDefault();
 
     if (ctx.getMode() === "vertical") {
-      // Inject impulse — tick applies it to pos.target with friction decay,
-      // so the carousel visibly "runs" before slowing to a stop.
+      // Desktop vertical: mouse wheel is fully disabled.
+      // Navigation happens via click (handleTap → center the clicked card).
+      if (typeof window !== "undefined" && window.innerWidth >= 768) {
+        e.preventDefault();
+        return;
+      }
+      // Mobile vertical: inject impulse so the carousel runs and slowly stops.
+      e.preventDefault();
       gsap.killTweensOf(ctx.getPos());
       ctx.setImpulse(ctx.getImpulse() - e.deltaY * MOBILE_PHYSICS.wheelImpulse);
       scheduleSnap(MOBILE_PHYSICS.snapDelay);
       return;
     }
+    e.preventDefault();
     ctx.setImpulse(ctx.getImpulse() - e.deltaY * config.wheel);
   };
 }

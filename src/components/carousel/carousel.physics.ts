@@ -20,6 +20,10 @@ export interface TickContext {
   getImpulse: () => number;
   setImpulse: (v: number) => void;
   getIsAnimating: () => boolean;
+  /** If true, the physics step (impulse + smoothLag) is skipped but cards
+   *  are still positioned from pos.current. Used during click-to-center
+   *  animations where an external gsap tween owns pos. */
+  getIsPhysicsPaused: () => boolean;
   getMode: () => "horizontal" | "vertical";
   getVState: () => VerticalState | null;
   getSetWidth: () => number;
@@ -37,26 +41,28 @@ export function createTickHandler(ctx: TickContext): () => void {
     const pos = ctx.getPos();
     const dt = gsap.ticker.deltaRatio(60);
     const isVertical = ctx.getMode() === "vertical";
+    const physicsPaused = ctx.getIsPhysicsPaused();
 
-    // Apply friction to impulse — gentler in vertical mode for longer glide.
-    const frictionBase = isVertical
-      ? MOBILE_PHYSICS.friction
-      : DESKTOP_PHYSICS.friction;
-    const friction = Math.pow(frictionBase, dt);
-    let impulse = ctx.getImpulse() * friction;
-    if (Math.abs(impulse) < 0.01) impulse = 0;
-    ctx.setImpulse(impulse);
+    // Physics step: skipped during click-to-center tweens so external gsap
+    // has exclusive ownership of pos.target / pos.current.
+    if (!physicsPaused) {
+      const frictionBase = isVertical
+        ? MOBILE_PHYSICS.friction
+        : DESKTOP_PHYSICS.friction;
+      const friction = Math.pow(frictionBase, dt);
+      let impulse = ctx.getImpulse() * friction;
+      if (Math.abs(impulse) < 0.01) impulse = 0;
+      ctx.setImpulse(impulse);
 
-    // Advance target and ease current toward it.
-    pos.target += impulse * dt;
-    // Vertical uses smoother lag (pos.current chases pos.target slowly).
-    const smoothBase = isVertical ? MOBILE_PHYSICS.smoothLag : config.smooth;
-    const ease = 1 - Math.pow(smoothBase, dt);
-    const diff = pos.target - pos.current;
-    if (Math.abs(diff) < 0.3) {
-      pos.current = pos.target;
-    } else {
-      pos.current += diff * ease;
+      pos.target += impulse * dt;
+      const smoothBase = isVertical ? MOBILE_PHYSICS.smoothLag : config.smooth;
+      const ease = 1 - Math.pow(smoothBase, dt);
+      const diff = pos.target - pos.current;
+      if (Math.abs(diff) < 0.3) {
+        pos.current = pos.target;
+      } else {
+        pos.current += diff * ease;
+      }
     }
 
     // --- Vertical mode: position cards in column ---

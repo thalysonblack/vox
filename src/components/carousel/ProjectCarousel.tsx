@@ -76,6 +76,7 @@ export default function ProjectCarousel({
 
   // --- Animation state ---
   const isAnimatingRef = useRef(false);
+  const isPhysicsPausedRef = useRef(false);
   const animTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const modeRef = useRef<"horizontal" | "vertical">("horizontal");
   const cleanupRef = useRef<((targetScrollLeft?: number) => void) | null>(null);
@@ -196,26 +197,32 @@ export default function ProjectCarousel({
   handleTapRef.current = (project: ProjectListItem, el: HTMLElement) => {
     if (modeRef.current === "vertical") {
       const v = vStateRef.current;
-      if (v) {
-        const tappedPid = el.dataset.projectId;
-        const tapped = v.cards.find((c) => c.el.dataset.projectId === tappedPid);
-        if (tapped) {
-          const n = v.cards.length;
-          const currentSlots = posRef.current.target / v.stepY;
-          let currentSlotOff = tapped.baseOffset + currentSlots;
-          currentSlotOff = ((currentSlotOff % n) + n) % n;
-          if (currentSlotOff >= n / 2) currentSlotOff -= n;
-          const targetScroll = posRef.current.target - currentSlotOff * v.stepY;
-          gsap.killTweensOf(posRef.current);
-          impulseRef.current = 0;
-          gsap.to(posRef.current, {
-            target: targetScroll,
-            current: targetScroll,
-            duration: TIMING.verticalTapScrollDur,
-            ease: "expo.out",
-          });
-        }
-      }
+      if (!v) return;
+      const tappedPid = el.dataset.projectId;
+      const tapped = v.cards.find((c) => c.el.dataset.projectId === tappedPid);
+      if (!tapped) return;
+
+      // Smoothly animate the tapped card to center, then open the detail panel.
+      const n = v.cards.length;
+      const currentSlots = posRef.current.current / v.stepY;
+      let currentSlotOff = tapped.baseOffset + currentSlots;
+      currentSlotOff = ((currentSlotOff % n) + n) % n;
+      if (currentSlotOff >= n / 2) currentSlotOff -= n;
+      const targetScroll = posRef.current.current - currentSlotOff * v.stepY;
+
+      // Pause the physics step so the tween owns pos exclusively (no jerk).
+      gsap.killTweensOf(posRef.current);
+      impulseRef.current = 0;
+      isPhysicsPausedRef.current = true;
+      gsap.to(posRef.current, {
+        target: targetScroll,
+        current: targetScroll,
+        duration: 1.2,
+        ease: "expo.out",
+        onComplete: () => {
+          isPhysicsPausedRef.current = false;
+        },
+      });
       openDetailForProject(project);
       return;
     }
@@ -434,6 +441,95 @@ export default function ProjectCarousel({
     ro.observe(set1);
     window.addEventListener("resize", updateSetWidth);
 
+    // Responsive: on viewport resize, rebuild vertical state (if in vertical mode)
+    // so the column X + card scales adapt to the new viewport without a page reload.
+    // Also handles mobile ↔ desktop breakpoint crossings.
+    let resizeRebuildRaf = 0;
+    const handleResizeRebuild = () => {
+      if (resizeRebuildRaf) return;
+      resizeRebuildRaf = requestAnimationFrame(() => {
+        resizeRebuildRaf = 0;
+        const nowMobile = window.innerWidth < 768;
+        const wasMobile = isMobileRef.current;
+        isMobileRef.current = nowMobile;
+
+        // Crossing the breakpoint: mobile → desktop (close any open mobile vertical).
+        if (wasMobile && !nowMobile && modeRef.current === "vertical") {
+          // Reset to horizontal: clear transforms on all cards, reset strip overflow.
+          const allCards = Array.from(
+            strip.querySelectorAll<HTMLElement>("[data-project-id]"),
+          );
+          gsap.set(allCards, { clearProps: "transform,opacity,zIndex" });
+          const innerDivs = Array.from(strip.children) as HTMLElement[];
+          gsap.set(innerDivs, { clearProps: "transform" });
+          strip.style.overflow = "";
+          vStateRef.current = null;
+          modeRef.current = "horizontal";
+          posRef.current.target = 0;
+          posRef.current.current = 0;
+          impulseRef.current = 0;
+          return;
+        }
+
+        // Crossing the breakpoint: desktop → mobile (auto-enter vertical).
+        if (!wasMobile && nowMobile && modeRef.current === "horizontal") {
+          const { visible, nonCanonicalEls } = resolveCanonicalCards(
+            strip,
+            projectsRef.current,
+          );
+          if (visible.length === 0) return;
+          const cardW = visible[0].r.width;
+          const cardH = visible[0].r.height;
+          if (!cardW || !cardH) return;
+          const vpRect = strip.getBoundingClientRect();
+          const vState = buildVerticalState({
+            strip,
+            visible,
+            vpRect,
+            safeClickedIdx: 0,
+            cardW,
+            cardH,
+          });
+          vStateRef.current = vState;
+          nonCanonicalElsRef.current = nonCanonicalEls;
+          modeRef.current = "vertical";
+          enterVerticalDirectly({ strip, visible, nonCanonicalEls, vState, cardW, cardH });
+          posRef.current.target = 0;
+          posRef.current.current = 0;
+          impulseRef.current = 0;
+          return;
+        }
+
+        // Already in vertical mode and no breakpoint cross → rebuild for new viewport size.
+        if (modeRef.current === "vertical" && vStateRef.current) {
+          const { visible, nonCanonicalEls } = resolveCanonicalCards(
+            strip,
+            projectsRef.current,
+          );
+          if (visible.length === 0) return;
+          const cardW = visible[0].r.width;
+          const cardH = visible[0].r.height;
+          if (!cardW || !cardH) return;
+          const vpRect = strip.getBoundingClientRect();
+          const vState = buildVerticalState({
+            strip,
+            visible,
+            vpRect,
+            safeClickedIdx: vStateRef.current.safeClickedIdx,
+            cardW,
+            cardH,
+          });
+          vStateRef.current = vState;
+          nonCanonicalElsRef.current = nonCanonicalEls;
+          enterVerticalDirectly({ strip, visible, nonCanonicalEls, vState, cardW, cardH });
+          posRef.current.target = 0;
+          posRef.current.current = 0;
+          impulseRef.current = 0;
+        }
+      });
+    };
+    window.addEventListener("resize", handleResizeRebuild);
+
 
     // Physics tick.
     const onTick = createTickHandler({
@@ -441,6 +537,7 @@ export default function ProjectCarousel({
       getImpulse: () => impulseRef.current,
       setImpulse: (v) => { impulseRef.current = v; },
       getIsAnimating: () => isAnimatingRef.current,
+      getIsPhysicsPaused: () => isPhysicsPausedRef.current,
       getMode: () => modeRef.current,
       getVState: () => vStateRef.current,
       getSetWidth: () => setWidthRef.current,
@@ -479,6 +576,8 @@ export default function ProjectCarousel({
 
     return () => {
       if (updateRaf) cancelAnimationFrame(updateRaf);
+      if (resizeRebuildRaf) cancelAnimationFrame(resizeRebuildRaf);
+      window.removeEventListener("resize", handleResizeRebuild);
       ro.disconnect();
       window.removeEventListener("resize", updateSetWidth);
       gsap.ticker.remove(onTick);
@@ -559,6 +658,13 @@ export default function ProjectCarousel({
           project={selectedProject}
           visible={panelVisible}
           onClose={closePanel}
+          onScrollPastEnd={() => {
+            const list = projectsRef.current;
+            const idx = list.findIndex((p) => p.id === selectedProject.id);
+            if (idx === -1) return;
+            const next = list[(idx + 1) % list.length];
+            if (next) openDetailForProject(next);
+          }}
         />
       )}
     </>

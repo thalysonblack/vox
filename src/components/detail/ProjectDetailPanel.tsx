@@ -12,6 +12,9 @@ interface ProjectDetailPanelProps {
   project: Project;
   visible: boolean;
   onClose: () => void;
+  /** Called when the user scrolls past the bottom of the panel — used to
+   *  auto-advance to the next project. */
+  onScrollPastEnd?: () => void;
 }
 
 const metaLabelClass =
@@ -36,6 +39,7 @@ export default function ProjectDetailPanel({
   project,
   visible,
   onClose,
+  onScrollPastEnd,
 }: ProjectDetailPanelProps) {
   const { detail } = project;
   const panelRef = useRef<HTMLDivElement>(null);
@@ -63,6 +67,61 @@ export default function ProjectDetailPanel({
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
+
+  // Scroll-past-end: after reaching the bottom, accumulate extra wheel/touch
+  // delta. When the threshold is hit, call onScrollPastEnd (auto-navigate).
+  useEffect(() => {
+    if (!visible || !scrollRef.current || !onScrollPastEnd) return;
+    const scroller = scrollRef.current;
+    const THRESHOLD = 180;
+    let accum = 0;
+    let triggered = false;
+    let touchStartY = 0;
+
+    const isAtBottom = () =>
+      scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
+
+    const onWheel = (e: WheelEvent) => {
+      if (triggered || e.deltaY <= 0) return;
+      if (!isAtBottom()) {
+        accum = 0;
+        return;
+      }
+      accum += e.deltaY;
+      if (accum >= THRESHOLD) {
+        triggered = true;
+        accum = 0;
+        onScrollPastEnd();
+      }
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+      accum = 0;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (triggered) return;
+      if (!isAtBottom()) return;
+      const dy = touchStartY - e.touches[0].clientY; // drag up = positive
+      if (dy > 0) {
+        accum = dy;
+        if (accum >= THRESHOLD) {
+          triggered = true;
+          accum = 0;
+          onScrollPastEnd();
+        }
+      }
+    };
+
+    scroller.addEventListener("wheel", onWheel, { passive: true });
+    scroller.addEventListener("touchstart", onTouchStart, { passive: true });
+    scroller.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      scroller.removeEventListener("wheel", onWheel);
+      scroller.removeEventListener("touchstart", onTouchStart);
+      scroller.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [visible, onScrollPastEnd, project.id]);
 
   // Scroll reveal animations
   useEffect(() => {

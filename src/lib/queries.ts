@@ -99,16 +99,6 @@ export const projectsQuery = `*[_type == "project"] | order(order asc) {
   }
 }`;
 
-// Site settings (singleton document). Returns null if not yet created in Studio.
-export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
-  scrollFriction,
-  scrollSmoothLag,
-  scrollWheelImpulse,
-  scrollFlingMultiplier,
-  scrollSnapDelay,
-  scrollSnapDuration
-}`;
-
 export const resourcesQuery = `*[_type == "resourceItem" && status == "active"] | order(order asc) {
   "id": _id,
   title,

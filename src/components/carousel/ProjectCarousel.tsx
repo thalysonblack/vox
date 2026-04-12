@@ -7,9 +7,7 @@ import ProjectDetailPanel from "@/components/detail/ProjectDetailPanel";
 import { carouselConfig as config } from "@/lib/carouselConfig";
 import { TIMING } from "./carousel.constants";
 import type { Project, ProjectListItem } from "@/types/project";
-import type { ResolvedScrollPhysics } from "@/types/settings";
 import type { DragState, ScrollPosition, VerticalState } from "./carousel.types";
-import { MOBILE_PHYSICS } from "./carousel.constants";
 import {
   resolveCanonicalCards,
   buildVerticalState,
@@ -31,20 +29,10 @@ import {
 interface ProjectCarouselProps {
   projects: ProjectListItem[];
   initialSlug?: string;
-  scrollPhysics?: ResolvedScrollPhysics;
   onDetailOpen?: () => void;
   onDetailClose?: () => void;
   onRegisterCloseHandler?: (handler: () => void) => void;
 }
-
-const DEFAULT_PHYSICS: ResolvedScrollPhysics = {
-  friction: MOBILE_PHYSICS.friction,
-  smoothLag: MOBILE_PHYSICS.smoothLag,
-  wheelImpulse: MOBILE_PHYSICS.wheelImpulse,
-  flingMultiplier: MOBILE_PHYSICS.flingMultiplier,
-  snapDelay: MOBILE_PHYSICS.snapDelay,
-  snapDuration: MOBILE_PHYSICS.snapDuration,
-};
 
 // ---------------------------------------------------------------------------
 // Component
@@ -53,16 +41,10 @@ const DEFAULT_PHYSICS: ResolvedScrollPhysics = {
 export default function ProjectCarousel({
   projects,
   initialSlug,
-  scrollPhysics,
   onDetailOpen,
   onDetailClose,
   onRegisterCloseHandler,
 }: ProjectCarouselProps) {
-  // Physics ref: always-current values for tick/events to read.
-  const physicsRef = useRef<ResolvedScrollPhysics>(
-    scrollPhysics ?? DEFAULT_PHYSICS,
-  );
-  physicsRef.current = scrollPhysics ?? DEFAULT_PHYSICS;
   // --- DOM refs ---
   const stripRef = useRef<HTMLDivElement>(null);
   const set1Ref = useRef<HTMLDivElement>(null);
@@ -462,7 +444,6 @@ export default function ProjectCarousel({
       getMode: () => modeRef.current,
       getVState: () => vStateRef.current,
       getSetWidth: () => setWidthRef.current,
-      getPhysics: () => physicsRef.current,
       strip,
     });
     gsap.ticker.add(onTick);
@@ -482,7 +463,6 @@ export default function ProjectCarousel({
       getWheelAccum: () => wheelAccumRef.current,
       setWheelAccum: (v: number) => { wheelAccumRef.current = v; },
       getProjects: () => projectsRef.current,
-      getPhysics: () => physicsRef.current,
       onTap: (project: ProjectListItem, el: HTMLElement) =>
         handleTapRef.current(project, el),
     };

@@ -8,29 +8,7 @@ export default defineConfig({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
   basePath: "/studio",
-  plugins: [
-    structureTool({
-      structure: (S) =>
-        S.list()
-          .title("Content")
-          .items([
-            // Singleton: Site Settings (single document)
-            S.listItem()
-              .title("Site Settings")
-              .id("siteSettings")
-              .child(
-                S.document()
-                  .schemaType("siteSettings")
-                  .documentId("siteSettings"),
-              ),
-            S.divider(),
-            // Rest of the document types (projects, resources, etc.)
-            ...S.documentTypeListItems().filter(
-              (listItem) => listItem.getId() !== "siteSettings",
-            ),
-          ]),
-    }),
-  ],
+  plugins: [structureTool()],
   schema: {
     types: schemaTypes,
   },

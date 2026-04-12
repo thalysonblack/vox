@@ -89,6 +89,36 @@ export default function ProjectCarousel({
   // Open detail panel
   // -----------------------------------------------------------------------
 
+  // Animate pos so the given project's card lands at the vertical center.
+  // Used by both click-to-navigate and scroll-past-end to next project.
+  const centerProjectInCarousel = useCallback((projectId: string) => {
+    if (modeRef.current !== "vertical") return;
+    const v = vStateRef.current;
+    if (!v) return;
+    const tapped = v.cards.find((c) => c.el.dataset.projectId === projectId);
+    if (!tapped) return;
+
+    const n = v.cards.length;
+    const currentSlots = posRef.current.current / v.stepY;
+    let currentSlotOff = tapped.baseOffset + currentSlots;
+    currentSlotOff = ((currentSlotOff % n) + n) % n;
+    if (currentSlotOff >= n / 2) currentSlotOff -= n;
+    const targetScroll = posRef.current.current - currentSlotOff * v.stepY;
+
+    gsap.killTweensOf(posRef.current);
+    impulseRef.current = 0;
+    isPhysicsPausedRef.current = true;
+    gsap.to(posRef.current, {
+      target: targetScroll,
+      current: targetScroll,
+      duration: 1.2,
+      ease: "expo.out",
+      onComplete: () => {
+        isPhysicsPausedRef.current = false;
+      },
+    });
+  }, []);
+
   const openDetailForProject = useCallback(
     (listItem: ProjectListItem | Project) => {
       const skeleton: Project = {
@@ -196,33 +226,7 @@ export default function ProjectCarousel({
   const handleTapRef = useRef<(project: ProjectListItem, el: HTMLElement) => void>(() => {});
   handleTapRef.current = (project: ProjectListItem, el: HTMLElement) => {
     if (modeRef.current === "vertical") {
-      const v = vStateRef.current;
-      if (!v) return;
-      const tappedPid = el.dataset.projectId;
-      const tapped = v.cards.find((c) => c.el.dataset.projectId === tappedPid);
-      if (!tapped) return;
-
-      // Smoothly animate the tapped card to center, then open the detail panel.
-      const n = v.cards.length;
-      const currentSlots = posRef.current.current / v.stepY;
-      let currentSlotOff = tapped.baseOffset + currentSlots;
-      currentSlotOff = ((currentSlotOff % n) + n) % n;
-      if (currentSlotOff >= n / 2) currentSlotOff -= n;
-      const targetScroll = posRef.current.current - currentSlotOff * v.stepY;
-
-      // Pause the physics step so the tween owns pos exclusively (no jerk).
-      gsap.killTweensOf(posRef.current);
-      impulseRef.current = 0;
-      isPhysicsPausedRef.current = true;
-      gsap.to(posRef.current, {
-        target: targetScroll,
-        current: targetScroll,
-        duration: 1.2,
-        ease: "expo.out",
-        onComplete: () => {
-          isPhysicsPausedRef.current = false;
-        },
-      });
+      centerProjectInCarousel(project.id);
       openDetailForProject(project);
       return;
     }
@@ -663,7 +667,9 @@ export default function ProjectCarousel({
             const idx = list.findIndex((p) => p.id === selectedProject.id);
             if (idx === -1) return;
             const next = list[(idx + 1) % list.length];
-            if (next) openDetailForProject(next);
+            if (!next) return;
+            centerProjectInCarousel(next.id);
+            openDetailForProject(next);
           }}
         />
       )}

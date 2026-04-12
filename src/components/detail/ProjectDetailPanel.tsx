@@ -68,12 +68,19 @@ export default function ProjectDetailPanel({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  // When the project changes (via scroll-past-end or direct navigation),
+  // reset the panel scroll position to the top.
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [project.id]);
+
   // Scroll-past-end: after reaching the bottom, accumulate extra wheel/touch
   // delta. When the threshold is hit, call onScrollPastEnd (auto-navigate).
   useEffect(() => {
     if (!visible || !scrollRef.current || !onScrollPastEnd) return;
     const scroller = scrollRef.current;
-    const THRESHOLD = 180;
+    // Long extra pull required — avoids accidental navigation.
+    const THRESHOLD = 650;
     let accum = 0;
     let triggered = false;
     let touchStartY = 0;

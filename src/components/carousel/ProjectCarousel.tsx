@@ -124,8 +124,8 @@ export default function ProjectCarousel({
     const proxy = { v: posRef.current.current };
     gsap.to(proxy, {
       v: targetScroll,
-      duration: 1.4,
-      ease: "expo.out",
+      duration: 1.8,
+      ease: "sine.inOut",
       onUpdate: () => {
         posRef.current.current = proxy.v;
         posRef.current.target = proxy.v;

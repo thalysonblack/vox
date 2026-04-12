@@ -75,14 +75,30 @@ export default function ProjectDetailPanel({
   const scrollLockRef = useRef(false);
 
   // When the project changes (via scroll-past-end or direct navigation),
-  // reset the panel scroll position to the top AND lock scroll briefly.
+  // reset the panel scroll position to the top, briefly fade the content
+  // for a soft swap, AND lock scroll until everything settles.
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    // Smoothly reset scroll and fade content out/in around the swap.
+    scroller.style.transition = "opacity 250ms ease-out";
+    scroller.style.opacity = "0";
+    const fadeBack = window.setTimeout(() => {
+      scroller.scrollTop = 0;
+      scroller.style.opacity = "1";
+    }, 260);
+
     scrollLockRef.current = true;
-    const t = window.setTimeout(() => {
+    const release = window.setTimeout(() => {
       scrollLockRef.current = false;
-    }, 900);
-    return () => window.clearTimeout(t);
+      scroller.style.transition = "";
+    }, 1100);
+
+    return () => {
+      window.clearTimeout(fadeBack);
+      window.clearTimeout(release);
+    };
   }, [project.id]);
 
   // Enforce the scroll lock on wheel/touch events and keep scrollTop at 0.
@@ -113,16 +129,27 @@ export default function ProjectDetailPanel({
   // Scroll-past-end: after reaching the bottom, accumulate extra wheel/touch
   // delta. When the threshold is hit, call onScrollPastEnd (auto-navigate).
   // A progress indicator fades in as the user gets closer to triggering.
+  //
+  // Anti-accident rules:
+  //   - Each wheel event is capped (fast/jerky scrolls don't count as much)
+  //   - Minimum sustained time before triggering
   useEffect(() => {
     if (!visible || !scrollRef.current || !onScrollPastEnd) return;
     const scroller = scrollRef.current;
     const indicator = nextIndicatorRef.current;
     const fill = nextIndicatorFillRef.current;
-    // Long extra pull required — avoids accidental navigation.
-    const THRESHOLD = 650;
+    // Long, deliberate pull required.
+    const THRESHOLD = 900;
+    // Hard cap per wheel tick — prevents a single sharp scroll (e.g. a
+    // trackpad flick with deltaY=500) from jumping 80% of the threshold at once.
+    const PER_EVENT_CAP = 45;
+    // User must be actively scrolling for at least this long before nav fires.
+    const MIN_DURATION_MS = 900;
+
     let accum = 0;
     let triggered = false;
     let touchStartY = 0;
+    let activationStart = 0;
     let idleTimer: number | null = null;
 
     const isAtBottom = () =>
@@ -141,22 +168,29 @@ export default function ProjectDetailPanel({
       if (idleTimer !== null) window.clearTimeout(idleTimer);
       idleTimer = window.setTimeout(() => {
         accum = 0;
+        activationStart = 0;
         setProgress(0);
-      }, 700);
+      }, 500);
     };
 
-    const onWheel = (e: WheelEvent) => {
-      if (triggered || e.deltaY <= 0) return;
-      if (scrollLockRef.current) return;
-      if (!isAtBottom()) {
-        accum = 0;
-        setProgress(0);
-        return;
-      }
-      accum += e.deltaY;
-      setProgress(accum / THRESHOLD);
+    const addProgress = (rawDelta: number) => {
+      const capped = Math.min(rawDelta, PER_EVENT_CAP);
+      if (activationStart === 0) activationStart = performance.now();
+      accum += capped;
+      // Visual progress accounts for BOTH accum AND elapsed time, so a fast
+      // scroller sees the bar fill slower than their input suggests.
+      const accumProgress = accum / THRESHOLD;
+      const timeProgress =
+        (performance.now() - activationStart) / MIN_DURATION_MS;
+      const progress = Math.min(accumProgress, timeProgress);
+      setProgress(progress);
       scheduleIdleReset();
-      if (accum >= THRESHOLD) {
+
+      // Both conditions must hold: accum over THRESHOLD AND min duration elapsed.
+      if (
+        accum >= THRESHOLD &&
+        performance.now() - activationStart >= MIN_DURATION_MS
+      ) {
         triggered = true;
         setProgress(1);
         if (idleTimer !== null) window.clearTimeout(idleTimer);
@@ -165,9 +199,20 @@ export default function ProjectDetailPanel({
       }
     };
 
+    const onWheel = (e: WheelEvent) => {
+      if (triggered || e.deltaY <= 0) return;
+      if (scrollLockRef.current) return;
+      if (!isAtBottom()) {
+        accum = 0;
+        activationStart = 0;
+        setProgress(0);
+        return;
+      }
+      addProgress(e.deltaY);
+    };
+
     const onTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
-      accum = 0;
     };
     const onTouchMove = (e: TouchEvent) => {
       if (triggered) return;
@@ -176,23 +221,15 @@ export default function ProjectDetailPanel({
         setProgress(0);
         return;
       }
-      const dy = touchStartY - e.touches[0].clientY;
-      if (dy > 0) {
-        accum = dy;
-        setProgress(accum / THRESHOLD);
-        scheduleIdleReset();
-        if (accum >= THRESHOLD) {
-          triggered = true;
-          setProgress(1);
-          if (idleTimer !== null) window.clearTimeout(idleTimer);
-          onScrollPastEnd();
-          window.setTimeout(() => setProgress(0), 600);
-        }
-      }
+      const nowY = e.touches[0].clientY;
+      const frameDelta = touchStartY - nowY;
+      touchStartY = nowY;
+      if (frameDelta > 0) addProgress(frameDelta);
     };
     const onTouchEnd = () => {
       if (!triggered) {
         accum = 0;
+        activationStart = 0;
         setProgress(0);
       }
     };

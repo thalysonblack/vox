@@ -45,6 +45,8 @@ export default function ProjectDetailPanel({
   const panelRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const gsapCtxRef = useRef<gsap.Context | null>(null);
+  const nextIndicatorRef = useRef<HTMLDivElement>(null);
+  const nextIndicatorFillRef = useRef<HTMLDivElement>(null);
 
   const description = detail.description || MOCK_DESCRIPTION;
   const typeValue = detail.discipline || detail.category || MOCK_TYPE;
@@ -68,37 +70,98 @@ export default function ProjectDetailPanel({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  // Lock scroll momentum after a project change so the user sees the top
+  // of the new project instead of being rushed down by residual scroll.
+  const scrollLockRef = useRef(false);
+
   // When the project changes (via scroll-past-end or direct navigation),
-  // reset the panel scroll position to the top.
+  // reset the panel scroll position to the top AND lock scroll briefly.
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    scrollLockRef.current = true;
+    const t = window.setTimeout(() => {
+      scrollLockRef.current = false;
+    }, 900);
+    return () => window.clearTimeout(t);
   }, [project.id]);
+
+  // Enforce the scroll lock on wheel/touch events and keep scrollTop at 0.
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+    const onWheelBlock = (e: WheelEvent) => {
+      if (scrollLockRef.current && e.deltaY > 0) {
+        e.preventDefault();
+        scroller.scrollTop = 0;
+      }
+    };
+    const onTouchBlock = (e: TouchEvent) => {
+      if (scrollLockRef.current) {
+        scroller.scrollTop = 0;
+        // Don't preventDefault on touch — iOS needs natural gestures;
+        // snapping to 0 is enough to keep the top in view.
+      }
+    };
+    scroller.addEventListener("wheel", onWheelBlock, { passive: false });
+    scroller.addEventListener("touchmove", onTouchBlock, { passive: true });
+    return () => {
+      scroller.removeEventListener("wheel", onWheelBlock);
+      scroller.removeEventListener("touchmove", onTouchBlock);
+    };
+  }, []);
 
   // Scroll-past-end: after reaching the bottom, accumulate extra wheel/touch
   // delta. When the threshold is hit, call onScrollPastEnd (auto-navigate).
+  // A progress indicator fades in as the user gets closer to triggering.
   useEffect(() => {
     if (!visible || !scrollRef.current || !onScrollPastEnd) return;
     const scroller = scrollRef.current;
+    const indicator = nextIndicatorRef.current;
+    const fill = nextIndicatorFillRef.current;
     // Long extra pull required — avoids accidental navigation.
     const THRESHOLD = 650;
     let accum = 0;
     let triggered = false;
     let touchStartY = 0;
+    let idleTimer: number | null = null;
 
     const isAtBottom = () =>
       scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
 
+    const setProgress = (p: number) => {
+      const clamped = Math.max(0, Math.min(1, p));
+      if (fill) fill.style.transform = `scaleX(${clamped})`;
+      if (indicator) {
+        indicator.style.opacity = clamped > 0 ? "1" : "0";
+        indicator.style.transform = `translateY(${clamped > 0 ? 0 : 20}px)`;
+      }
+    };
+
+    const scheduleIdleReset = () => {
+      if (idleTimer !== null) window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => {
+        accum = 0;
+        setProgress(0);
+      }, 700);
+    };
+
     const onWheel = (e: WheelEvent) => {
       if (triggered || e.deltaY <= 0) return;
+      if (scrollLockRef.current) return;
       if (!isAtBottom()) {
         accum = 0;
+        setProgress(0);
         return;
       }
       accum += e.deltaY;
+      setProgress(accum / THRESHOLD);
+      scheduleIdleReset();
       if (accum >= THRESHOLD) {
         triggered = true;
-        accum = 0;
+        setProgress(1);
+        if (idleTimer !== null) window.clearTimeout(idleTimer);
         onScrollPastEnd();
+        window.setTimeout(() => setProgress(0), 600);
       }
     };
 
@@ -108,25 +171,43 @@ export default function ProjectDetailPanel({
     };
     const onTouchMove = (e: TouchEvent) => {
       if (triggered) return;
-      if (!isAtBottom()) return;
-      const dy = touchStartY - e.touches[0].clientY; // drag up = positive
+      if (scrollLockRef.current) return;
+      if (!isAtBottom()) {
+        setProgress(0);
+        return;
+      }
+      const dy = touchStartY - e.touches[0].clientY;
       if (dy > 0) {
         accum = dy;
+        setProgress(accum / THRESHOLD);
+        scheduleIdleReset();
         if (accum >= THRESHOLD) {
           triggered = true;
-          accum = 0;
+          setProgress(1);
+          if (idleTimer !== null) window.clearTimeout(idleTimer);
           onScrollPastEnd();
+          window.setTimeout(() => setProgress(0), 600);
         }
+      }
+    };
+    const onTouchEnd = () => {
+      if (!triggered) {
+        accum = 0;
+        setProgress(0);
       }
     };
 
     scroller.addEventListener("wheel", onWheel, { passive: true });
     scroller.addEventListener("touchstart", onTouchStart, { passive: true });
     scroller.addEventListener("touchmove", onTouchMove, { passive: true });
+    scroller.addEventListener("touchend", onTouchEnd, { passive: true });
     return () => {
+      if (idleTimer !== null) window.clearTimeout(idleTimer);
       scroller.removeEventListener("wheel", onWheel);
       scroller.removeEventListener("touchstart", onTouchStart);
       scroller.removeEventListener("touchmove", onTouchMove);
+      scroller.removeEventListener("touchend", onTouchEnd);
+      setProgress(0);
     };
   }, [visible, onScrollPastEnd, project.id]);
 
@@ -359,6 +440,29 @@ export default function ProjectDetailPanel({
               </span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Scroll-past-end progress indicator */}
+      <div
+        ref={nextIndicatorRef}
+        aria-hidden
+        className="pointer-events-none absolute right-0 bottom-0 left-0 z-[40] flex flex-col items-center gap-[8px] px-[16px] pb-[16px]"
+        style={{
+          opacity: 0,
+          transform: "translateY(20px)",
+          transition: "opacity 300ms ease-out, transform 300ms ease-out",
+        }}
+      >
+        <span className="text-[10px] font-semibold uppercase tracking-[-0.04em] text-black/50">
+          Continue scrolling to next project
+        </span>
+        <div className="h-[2px] w-[120px] overflow-hidden rounded-full bg-black/10">
+          <div
+            ref={nextIndicatorFillRef}
+            className="h-full w-full origin-left bg-[#2d2f2f]"
+            style={{ transform: "scaleX(0)" }}
+          />
         </div>
       </div>
     </div>

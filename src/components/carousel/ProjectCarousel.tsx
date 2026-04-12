@@ -101,6 +101,12 @@ export default function ProjectCarousel({
     const tapped = v.cards.find((c) => c.el.dataset.projectId === projectId);
     if (!tapped) return;
 
+    // Kill any running tween + momentum, then align target/current so the
+    // smoothLag of the tick has nothing left to chase (prevents a 1-frame jerk).
+    gsap.killTweensOf(posRef.current);
+    impulseRef.current = 0;
+    posRef.current.target = posRef.current.current;
+
     const n = v.cards.length;
     const currentSlots = posRef.current.current / v.stepY;
     let currentSlotOff = tapped.baseOffset + currentSlots;
@@ -108,14 +114,22 @@ export default function ProjectCarousel({
     if (currentSlotOff >= n / 2) currentSlotOff -= n;
     const targetScroll = posRef.current.current - currentSlotOff * v.stepY;
 
-    gsap.killTweensOf(posRef.current);
-    impulseRef.current = 0;
+    // Already at center → no animation needed.
+    if (Math.abs(currentSlotOff) < 0.01) return;
+
+    // Use a proxy object so gsap owns a single interpolated value that we
+    // mirror onto both pos.target and pos.current in onUpdate. Eliminates
+    // any desync between the two fields during the tween.
     isPhysicsPausedRef.current = true;
-    gsap.to(posRef.current, {
-      target: targetScroll,
-      current: targetScroll,
-      duration: 1.2,
+    const proxy = { v: posRef.current.current };
+    gsap.to(proxy, {
+      v: targetScroll,
+      duration: 1.4,
       ease: "expo.out",
+      onUpdate: () => {
+        posRef.current.current = proxy.v;
+        posRef.current.target = proxy.v;
+      },
       onComplete: () => {
         isPhysicsPausedRef.current = false;
       },

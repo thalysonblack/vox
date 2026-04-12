@@ -92,10 +92,7 @@ export function createTickHandler(ctx: TickContext): () => void {
           titleRow.style.paddingLeft = isActive ? ACTIVE_CARD_STYLE.paddingX : "";
           titleRow.style.paddingRight = isActive ? ACTIVE_CARD_STYLE.paddingX : "";
         }
-        // Hot path: use pre-cached quickSetters (created in buildVerticalState)
-        // instead of gsap.set for ~3x less overhead per frame.
-        c.setY(y - c.curCy);
-        c.setScale(scale);
+        gsap.set(c.el, { y: y - c.curCy, scale });
       }
       return;
     }

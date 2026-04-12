@@ -322,7 +322,6 @@ export default function ProjectCarousel({
 
     gsap.from(cards, {
       x: 60,
-      opacity: 0,
       duration: 0.8,
       stagger: 0.08,
       ease: "power3.out",

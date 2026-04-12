@@ -103,7 +103,26 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   const n = visible.length;
   const vpH = vpRect.height;
   const fullWinH = window.innerHeight;
+  const fullWinW = window.innerWidth;
   const effectiveVpH = Math.max(vpH, fullWinH - vpRect.top - 24);
+
+  // --- Compute dynamic columnX: center card between VOX logo and close button ---
+  const PADDING = 24;
+  const logoEl = document.querySelector<HTMLElement>("[data-vox-logo]");
+  const logoRight = logoEl
+    ? logoEl.getBoundingClientRect().right - vpRect.left
+    : 80;
+  // Close button sits just outside the detail panel's left edge; panel is at 22vw on md+.
+  const panelLeft = fullWinW >= 768 ? fullWinW * 0.22 : fullWinW;
+  const closeButtonWidth = 22 + 8; // button + offset
+  const rightBoundary = panelLeft - closeButtonWidth - vpRect.left;
+
+  const pBCenterCw = cardW * PHASE_B.centerScale;
+  const safeLeft = logoRight + PADDING;
+  const safeRight = rightBoundary - PADDING;
+  // Left-biased: place card's left edge right after logo, but never past the right safe zone.
+  const maxColumnX = Math.max(PADDING, safeRight - pBCenterCw);
+  const dynamicColumnX = Math.max(PADDING, Math.min(safeLeft, maxColumnX));
 
   const pBCenterCh = cardH * PHASE_B.centerScale;
   const pBAdjCh = cardH * PHASE_B.adjacentScale;
@@ -138,6 +157,7 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
     savedScrollLeft: ctx.strip.scrollLeft,
     safeClickedIdx,
     horizontalStride: cardW + config.gap,
+    columnX: dynamicColumnX,
   };
 }
 
@@ -194,7 +214,7 @@ export function createChoreographyTimeline(
 
   // Compute column X position.
   const pBCenterCw = cardW * PHASE_B.centerScale;
-  const p4X = PHASE_B.columnX + pBCenterCw / 2;
+  const p4X = vState.columnX + pBCenterCw / 2;
   const pBClickedCy = vState.clickedCy;
 
   const tl = gsap.timeline({

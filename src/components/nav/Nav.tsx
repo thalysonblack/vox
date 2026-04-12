@@ -20,6 +20,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
         type="button"
         onClick={onLogoClick}
         aria-label="Voltar para home"
+        data-vox-logo
         className="shrink-0 origin-top-left cursor-pointer transition-transform duration-500 ease-out"
         style={{ transform: compact ? "scale(0.72)" : "scale(1)" }}
       >

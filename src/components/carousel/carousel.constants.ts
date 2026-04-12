@@ -17,7 +17,7 @@ export const PHASE_B = {
   adjacentScale: 0.38,
   otherScale: 0.26,
   gap: 32,
-  columnX: 96,
+  columnX: 40,
 } as const;
 
 // --- Animation timing ---

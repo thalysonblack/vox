@@ -29,6 +29,8 @@ export interface VerticalState {
   savedScrollLeft: number;
   safeClickedIdx: number;
   horizontalStride: number;
+  /** Dynamically computed column X (card left edge) — centered between logo and panel */
+  columnX: number;
 }
 
 export interface ScrollPosition {

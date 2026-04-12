@@ -24,27 +24,33 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
   }, []);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#fdfdfc]">
-      <div className="shrink-0 px-3 pt-3 pb-3">
-        <Nav compact={detailOpen} onLogoClick={goHome} />
+    <div className="relative h-[100dvh] overflow-hidden bg-[#fdfdfc]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[100] px-3 pt-3 pb-3">
+        <div className="pointer-events-auto">
+          <Nav compact={detailOpen} onLogoClick={goHome} />
+        </div>
       </div>
 
-      <ProjectCarousel
-        projects={projects}
-        initialSlug={initialSlug}
-        onDetailOpen={() => setDetailOpen(true)}
-        onDetailClose={() => setDetailOpen(false)}
-        onRegisterCloseHandler={(fn) => {
-          closeHandlerRef.current = fn;
-        }}
-      />
+      <div className="absolute inset-0 flex flex-col">
+        <ProjectCarousel
+          projects={projects}
+          initialSlug={initialSlug}
+          onDetailOpen={() => setDetailOpen(true)}
+          onDetailClose={() => setDetailOpen(false)}
+          onRegisterCloseHandler={(fn) => {
+            closeHandlerRef.current = fn;
+          }}
+        />
+      </div>
 
       <div
-        className={`shrink-0 px-3 pb-3 transition-opacity duration-300 ${
-          detailOpen ? "pointer-events-none opacity-0" : "opacity-100"
+        className={`pointer-events-none absolute inset-x-0 bottom-0 z-[100] px-3 pb-3 transition-opacity duration-300 ${
+          detailOpen ? "opacity-0" : "opacity-100"
         }`}
       >
-        <Footer />
+        <div className="pointer-events-auto">
+          <Footer />
+        </div>
       </div>
     </div>
   );

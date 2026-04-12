@@ -67,27 +67,45 @@ export default function ProjectDetailPanel({
   // Scroll reveal animations
   useEffect(() => {
     if (!visible || !scrollRef.current) return;
+    const scroller = scrollRef.current;
+
+    // Hide elements IMMEDIATELY (same frame as mount) to prevent flash.
+    gsap.set(scroller.querySelectorAll("[data-reveal='header']"), {
+      y: 30,
+      opacity: 0,
+    });
+    gsap.set(scroller.querySelectorAll("[data-reveal='meta']"), {
+      y: 20,
+      opacity: 0,
+    });
+    gsap.set(scroller.querySelectorAll("[data-reveal='block']"), {
+      y: 40,
+      opacity: 0,
+      scale: 0.97,
+    });
+    gsap.set(scroller.querySelectorAll("[data-reveal='footer']"), {
+      y: 20,
+      opacity: 0,
+    });
 
     // Small delay to let the panel slide-in transition start.
     const timer = setTimeout(() => {
       if (!scrollRef.current) return;
 
       gsapCtxRef.current = gsap.context(() => {
-        const scroller = scrollRef.current!;
-
         // Title + description entrance
-        gsap.from("[data-reveal='header']", {
-          y: 30,
-          opacity: 0,
+        gsap.to("[data-reveal='header']", {
+          y: 0,
+          opacity: 1,
           duration: 0.7,
           ease: "power3.out",
           stagger: 0.1,
         });
 
         // Meta fields stagger
-        gsap.from("[data-reveal='meta']", {
-          y: 20,
-          opacity: 0,
+        gsap.to("[data-reveal='meta']", {
+          y: 0,
+          opacity: 1,
           duration: 0.6,
           delay: 0.3,
           ease: "power3.out",
@@ -98,10 +116,10 @@ export default function ProjectDetailPanel({
         gsap.utils
           .toArray<HTMLElement>("[data-reveal='block']")
           .forEach((el) => {
-            gsap.from(el, {
-              y: 40,
-              opacity: 0,
-              scale: 0.97,
+            gsap.to(el, {
+              y: 0,
+              opacity: 1,
+              scale: 1,
               duration: 0.8,
               ease: "power3.out",
               scrollTrigger: {
@@ -135,9 +153,9 @@ export default function ProjectDetailPanel({
           });
 
         // Footer reveal
-        gsap.from("[data-reveal='footer']", {
-          y: 20,
-          opacity: 0,
+        gsap.to("[data-reveal='footer']", {
+          y: 0,
+          opacity: 1,
           duration: 0.6,
           ease: "power2.out",
           scrollTrigger: {

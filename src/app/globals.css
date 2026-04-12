@@ -10,26 +10,13 @@
 :root {
   --background: #fdfdfc;
   --foreground: #000000;
-  /* Responsive project card sizing — preserves 446:601 aspect ratio. */
-  --pc-w: 446px;
-  --pc-h: 601px;
-}
-@media (max-width: 1279px) {
-  :root {
-    --pc-w: 330px;
-    --pc-h: 445px;
-  }
+  /* Fluid project card sizing — preserves 446:601 aspect ratio (ratio 1.348). */
+  --pc-w: clamp(180px, 20vw, 446px);
+  --pc-h: calc(var(--pc-w) * 1.348);
 }
 @media (max-width: 767px) {
   :root {
-    --pc-w: 260px;
-    --pc-h: 350px;
-  }
-}
-@media (max-width: 479px) {
-  :root {
-    --pc-w: 220px;
-    --pc-h: 296px;
+    --pc-w: min(78vw, 420px);
   }
 }
 
@@ -37,7 +24,7 @@
   body {
     background: var(--background);
     color: var(--foreground);
-    min-height: 100vh;
+    min-height: 100dvh;
   }
 }
 

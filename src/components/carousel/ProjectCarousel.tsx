@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { gsap } from "gsap";
 import ProjectCard from "@/components/card/ProjectCard";
+import MobileVerticalStack from "./MobileVerticalStack";
 import ProjectDetailPanel from "@/components/detail/ProjectDetailPanel";
 import { carouselConfig as config } from "@/lib/carouselConfig";
 import { TIMING } from "./carousel.constants";
@@ -48,6 +49,9 @@ export default function ProjectCarousel({
   // --- DOM refs ---
   const stripRef = useRef<HTMLDivElement>(null);
   const set1Ref = useRef<HTMLDivElement>(null);
+
+  // --- Repeat projects inside each set so set width always >= viewport ---
+  const [repeats, setRepeats] = useState(1);
 
   // --- Scroll physics state (mutable refs, not React state) ---
   const setWidthRef = useRef(0);
@@ -321,13 +325,21 @@ export default function ProjectCarousel({
     const set1 = set1Ref.current;
     if (!strip || !set1) return;
 
-    // Track set width for infinite-loop wrapping.
+    // Track set width for infinite-loop wrapping + auto-repeat projects.
     const updateSetWidth = () => {
       setWidthRef.current = set1.offsetWidth + config.gap;
+      // Ensure set1 width always exceeds viewport so the 2-set wrap has no gaps.
+      const viewportW = window.innerWidth;
+      const naturalSetW = set1.offsetWidth;
+      if (naturalSetW > 0) {
+        const needed = Math.max(1, Math.ceil((viewportW * 1.2) / (naturalSetW / repeats)));
+        if (needed !== repeats) setRepeats(needed);
+      }
     };
     updateSetWidth();
     const ro = new ResizeObserver(updateSetWidth);
     ro.observe(set1);
+    window.addEventListener("resize", updateSetWidth);
 
     // Physics tick.
     const onTick = createTickHandler({
@@ -373,6 +385,7 @@ export default function ProjectCarousel({
 
     return () => {
       ro.disconnect();
+      window.removeEventListener("resize", updateSetWidth);
       gsap.ticker.remove(onTick);
       window.removeEventListener("wheel", handleWheel);
       strip.removeEventListener("pointerdown", onPointerDown);
@@ -380,7 +393,8 @@ export default function ProjectCarousel({
       window.removeEventListener("pointerup", onPointerUp);
       document.removeEventListener("click", onDocClick);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repeats]);
 
   // -----------------------------------------------------------------------
   // Render
@@ -405,7 +419,8 @@ export default function ProjectCarousel({
 
   return (
     <>
-      <div className={`flex min-h-0 flex-1 justify-center ${vAlignClass}`}>
+      {/* Desktop: horizontal infinite carousel with choreography */}
+      <div className={`hidden min-h-0 flex-1 justify-center md:flex ${vAlignClass}`}>
         <section
           ref={stripRef}
           className="scrollbar-hide flex w-full touch-none cursor-grab overflow-x-auto overflow-y-hidden active:cursor-grabbing"
@@ -424,17 +439,31 @@ export default function ProjectCarousel({
             className="flex shrink-0 items-center"
             style={{ gap: config.gap, paddingLeft: 12 }}
           >
-            {projects.map((project, i) => (
-              <ProjectCard key={project.id} project={project} isFirst={i === 0} />
-            ))}
+            {Array.from({ length: repeats }).flatMap((_, r) =>
+              projects.map((project, i) => (
+                <ProjectCard
+                  key={`s1-${r}-${project.id}`}
+                  project={project}
+                  isFirst={r === 0 && i === 0}
+                />
+              )),
+            )}
           </div>
           <div className="flex shrink-0 items-center" style={{ gap: config.gap }}>
-            {projects.map((project) => (
-              <ProjectCard key={`dup-${project.id}`} project={project} />
-            ))}
+            {Array.from({ length: repeats }).flatMap((_, r) =>
+              projects.map((project) => (
+                <ProjectCard key={`s2-${r}-${project.id}`} project={project} />
+              )),
+            )}
           </div>
         </section>
       </div>
+
+      {/* Mobile: vertical snap carousel — behaves like the desktop vertical mode */}
+      <MobileVerticalStack
+        projects={projects}
+        onTapProject={openDetailForProject}
+      />
 
       {selectedProject && (
         <ProjectDetailPanel

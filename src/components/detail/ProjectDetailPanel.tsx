@@ -231,6 +231,10 @@ export default function ProjectDetailPanel({
             toggleActions: "play none none none",
           },
         });
+
+        // Let ScrollTrigger re-measure once all images/layout settle.
+        // Critical after the panel transitions in or the project changes.
+        requestAnimationFrame(() => ScrollTrigger.refresh());
       }, scrollRef);
     }, 200);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useLayoutEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { gsap } from "gsap";
 import ProjectCard from "@/components/card/ProjectCard";
 import ProjectDetailPanel from "@/components/detail/ProjectDetailPanel";
@@ -45,6 +46,8 @@ export default function ProjectCarousel({
   onDetailClose,
   onRegisterCloseHandler,
 }: ProjectCarouselProps) {
+  const router = useRouter();
+
   // --- DOM refs ---
   const stripRef = useRef<HTMLDivElement>(null);
   const set1Ref = useRef<HTMLDivElement>(null);
@@ -119,6 +122,20 @@ export default function ProjectCarousel({
     });
   }, []);
 
+  // Tiny in-memory cache of already-fetched full projects. Prevents re-fetch
+  // on scroll-past-end auto-navigation and makes transitions feel instant.
+  const projectCacheRef = useRef<Map<string, Project>>(new Map());
+
+  const prefetchProjectById = useCallback((id: string) => {
+    if (!id || projectCacheRef.current.has(id)) return;
+    fetch(`/api/project/${id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((full: Project | null) => {
+        if (full) projectCacheRef.current.set(id, full);
+      })
+      .catch(() => {});
+  }, []);
+
   const openDetailForProject = useCallback(
     (listItem: ProjectListItem | Project) => {
       const skeleton: Project = {
@@ -137,20 +154,42 @@ export default function ProjectCarousel({
           relatedProjects: [],
         },
       };
-      setSelectedProject(skeleton);
+
+      // Use cached full data if already prefetched.
+      const cached = projectCacheRef.current.get(listItem.id);
+      setSelectedProject(cached ?? skeleton);
       requestAnimationFrame(() => setPanelVisible(true));
       onDetailOpen?.();
       if (typeof window !== "undefined") {
         window.history.pushState({}, "", `/project/${listItem.id}`);
       }
-      fetch(`/api/project/${listItem.id}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((full: Project | null) => {
-          if (full) setSelectedProject(full);
-        })
-        .catch(() => {});
+
+      if (!cached) {
+        fetch(`/api/project/${listItem.id}`)
+          .then((res) => (res.ok ? res.json() : null))
+          .then((full: Project | null) => {
+            if (full) {
+              projectCacheRef.current.set(listItem.id, full);
+              setSelectedProject(full);
+            }
+          })
+          .catch(() => {});
+      }
+
+      // Pre-warm the next project so scroll-past-end feels instant:
+      //  - data via API (in-memory cache)
+      //  - route via router.prefetch (Next.js page cache, survives hard reload)
+      const list = projectsRef.current;
+      const idx = list.findIndex((p) => p.id === listItem.id);
+      if (idx !== -1) {
+        const nextId = list[(idx + 1) % list.length]?.id;
+        if (nextId) {
+          prefetchProjectById(nextId);
+          router.prefetch(`/project/${nextId}`);
+        }
+      }
     },
-    [onDetailOpen],
+    [onDetailOpen, prefetchProjectById, router],
   );
 
   // -----------------------------------------------------------------------

@@ -122,15 +122,13 @@ export default function ProjectCarousel({
     // any desync between the two fields during the tween.
     isPhysicsPausedRef.current = true;
     const proxy = { v: posRef.current.current };
-    const isDesktop =
-      typeof window !== "undefined" && window.innerWidth >= 768;
-    // Fast + smooth: power4.out has a clean, premium deceleration (no
-    // soft/hard edge), and the shorter duration feels snappy like a
-    // professional carousel.
+    // Long + smooth: feels like a gradual scroll rather than a snap jump.
+    // sine.inOut has a gentle start and end — closest to a natural scroll
+    // momentum curve. Duration is long enough to perceive the motion.
     gsap.to(proxy, {
       v: targetScroll,
-      duration: isDesktop ? 0.65 : 0.9,
-      ease: "power4.out",
+      duration: 1.4,
+      ease: "sine.inOut",
       onUpdate: () => {
         posRef.current.current = proxy.v;
         posRef.current.target = proxy.v;

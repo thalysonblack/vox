@@ -221,6 +221,22 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   const closeButtonWidth = 22 + 8; // button + offset
   const rightBoundary = panelLeft - closeButtonWidth - vpRect.left;
 
+  // If the safe zone is smaller than the natural center card width, shrink
+  // the vertical scales proportionally so the card fits without overflowing
+  // into the detail panel. Desktop horizontal carousel keeps its full size.
+  if (!isSmall) {
+    const safeLeft = logoRight + PADDING;
+    const safeRight = rightBoundary - PADDING;
+    const safeZone = Math.max(0, safeRight - safeLeft);
+    const naturalCenterW = cardW * centerScale;
+    if (naturalCenterW > safeZone && safeZone > 0) {
+      const shrink = safeZone / naturalCenterW;
+      centerScale *= shrink;
+      adjacentScale *= shrink;
+      otherScale *= shrink;
+    }
+  }
+
   const pBCenterCw = cardW * centerScale;
   const isMobile = isSmall;
   let dynamicColumnX: number;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 interface NavProps {
@@ -8,8 +8,57 @@ interface NavProps {
   onLogoClick?: () => void;
 }
 
+// Parse any CSS color string into an [r, g, b] tuple via the browser's
+// own color parser. Returns null for transparent / unparseable.
+function parseRgb(color: string): [number, number, number] | null {
+  const m = color.match(/rgba?\(([^)]+)\)/);
+  if (!m) return null;
+  const parts = m[1].split(",").map((s) => parseFloat(s.trim()));
+  const [r, g, b, a] = parts;
+  if (a !== undefined && a < 0.1) return null; // effectively transparent
+  return [r, g, b];
+}
+
+// Walk up from an element until we find a non-transparent bg; return its
+// relative luminance (0 = black, 1 = white).
+function bgLuminance(el: Element | null): number {
+  let cur: Element | null = el;
+  while (cur) {
+    const bg = parseRgb(getComputedStyle(cur).backgroundColor);
+    if (bg) {
+      const [r, g, b] = bg;
+      // Relative luminance (ITU-R BT.601 approximation — fast and close enough).
+      return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    }
+    cur = cur.parentElement;
+  }
+  return 1; // assume white
+}
+
 export default function Nav({ compact = false, onLogoClick }: NavProps) {
   const [contactOpen, setContactOpen] = useState(false);
+  const [panelTextColor, setPanelTextColor] = useState<"black" | "white">(
+    "black",
+  );
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // When the CONNECT panel opens, probe what's behind it and pick a
+  // text color for max contrast.
+  useEffect(() => {
+    if (!contactOpen) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const rect = panel.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    // Temporarily hide the panel so elementFromPoint returns what's under it.
+    const prev = panel.style.visibility;
+    panel.style.visibility = "hidden";
+    const underneath = document.elementFromPoint(cx, cy);
+    panel.style.visibility = prev;
+    const lum = bgLuminance(underneath);
+    setPanelTextColor(lum > 0.55 ? "black" : "white");
+  }, [contactOpen]);
 
   return (
     <nav
@@ -82,6 +131,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
 
           {/* Panel — appears behind the button */}
           <div
+            ref={panelRef}
             className={`absolute -right-2 -top-2 z-[101] flex h-[165px] w-[240px] flex-col justify-end rounded-[4px] bg-black/[0.06] p-2 text-transparent backdrop-blur-[60px] transition-all duration-300 ease-out origin-top-right ${
               contactOpen
                 ? "scale-100 opacity-100"
@@ -90,41 +140,45 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
             style={{
               backgroundClip: "unset",
               WebkitBackgroundClip: "unset",
+              color: panelTextColor,
             }}
           >
-            <div className="flex w-full flex-col gap-6 p-[4px]">
+            <div
+              className="flex w-full flex-col gap-6 p-[4px]"
+              style={{ color: panelTextColor, opacity: 1 }}
+            >
               <div className="flex items-start justify-between gap-0">
-                <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] text-black">
+                <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
                   Whatsapp
                 </span>
                 <a
                   href="https://wa.me/5545999999999"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] text-black/40 transition-colors hover:text-black/70"
+                  className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] opacity-40 transition-opacity hover:opacity-70"
                 >
                   +55 45 9999-9999
                 </a>
               </div>
               <div className="flex items-start justify-between gap-0">
-                <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] text-black">
+                <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
                   Email
                 </span>
                 <a
                   href="mailto:hello@voxteller.com"
-                  className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] text-black/40 transition-colors hover:text-black/70"
+                  className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] opacity-40 transition-opacity hover:opacity-70"
                 >
                   hello@voxteller.com
                 </a>
               </div>
               <div className="flex items-start justify-between gap-0 text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
-                <span className="text-black">Social</span>
+                <span>Social</span>
                 <div className="flex gap-3">
                   <a
                     href="https://instagram.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-black/40 transition-colors hover:text-black/70"
+                    className="opacity-40 transition-opacity hover:opacity-70"
                   >
                     Instagram
                   </a>
@@ -132,7 +186,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
                     href="https://linkedin.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-black/40 transition-colors hover:text-black/70"
+                    className="opacity-40 transition-opacity hover:opacity-70"
                   >
                     Linkedin
                   </a>

@@ -102,7 +102,10 @@ export function createWheelHandler(ctx: EventContext) {
       return;
     }
     e.preventDefault();
-    ctx.setImpulse(ctx.getImpulse() - delta * config.wheel);
+    // Match native browser scroll direction: positive delta = forward scroll.
+    // This way both directions of trackpad horizontal swipe and mouse wheel
+    // produce the expected motion regardless of OS natural-scroll setting.
+    ctx.setImpulse(ctx.getImpulse() + delta * config.wheel);
   };
 }
 

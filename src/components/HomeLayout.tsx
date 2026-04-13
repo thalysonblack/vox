@@ -31,7 +31,7 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
   }, []);
 
   return (
-    <div className="relative h-[100dvh] overflow-hidden bg-[#fdfdfc]">
+    <div className="relative h-[100dvh] touch-none overflow-hidden bg-[#fdfdfc]">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[100] px-3 pt-3 pb-3">
         <div className="pointer-events-auto">
           <Nav compact={detailOpen && !isMobile} onLogoClick={goHome} />

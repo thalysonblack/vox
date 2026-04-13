@@ -198,10 +198,10 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   let otherScale: number;
   let gap: number;
   if (isSmall) {
-    // +10% over the previous tuning — still fits 6-7 slots with edge crop.
-    centerScale = 0.495;
-    adjacentScale = 0.352;
-    otherScale = 0.22;
+    // +10% again — 5 slots fully visible, ±3 barely peek at edges.
+    centerScale = 0.545;
+    adjacentScale = 0.387;
+    otherScale = 0.242;
     gap = 28;
   } else {
     centerScale = PHASE_B.centerScale;

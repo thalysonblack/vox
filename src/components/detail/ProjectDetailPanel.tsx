@@ -396,7 +396,7 @@ export default function ProjectDetailPanel({
       <div
         ref={scrollRef}
         data-scrollable-panel
-        className="scrollbar-hide flex h-full flex-col overflow-y-auto"
+        className="scrollbar-hide flex h-full touch-pan-y flex-col overflow-y-auto"
       >
         {/* Top section: Title (left) + meta column (right) — 2-cols on all screens */}
         <div className="flex shrink-0 flex-row items-start justify-between gap-4 px-[12px] pt-[12px] pb-[32px] md:gap-8 md:pb-[48px]">

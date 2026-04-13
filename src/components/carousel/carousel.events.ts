@@ -78,9 +78,14 @@ export function createWheelHandler(ctx: EventContext) {
   };
 
   return (e: WheelEvent) => {
-    if (e.deltaY === 0) return;
     const target = e.target as Element | null;
     if (target?.closest("[data-scrollable-panel]")) return;
+
+    // Horizontal carousel: accept BOTH trackpad horizontal swipe (deltaX)
+    // and mouse wheel vertical (deltaY). Whichever is dominant wins.
+    const delta =
+      Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (delta === 0) return;
 
     if (ctx.getMode() === "vertical") {
       // Desktop vertical: mouse wheel is fully disabled.
@@ -97,7 +102,7 @@ export function createWheelHandler(ctx: EventContext) {
       return;
     }
     e.preventDefault();
-    ctx.setImpulse(ctx.getImpulse() - e.deltaY * config.wheel);
+    ctx.setImpulse(ctx.getImpulse() - delta * config.wheel);
   };
 }
 

@@ -122,13 +122,14 @@ export default function ProjectCarousel({
     // any desync between the two fields during the tween.
     isPhysicsPausedRef.current = true;
     const proxy = { v: posRef.current.current };
-    // Shorter on desktop (click is the only input, needs to feel responsive).
     const isDesktop =
       typeof window !== "undefined" && window.innerWidth >= 768;
+    // ease-out-expo cubic-bezier — matches the panel slide curve for a
+    // consistent, premium-feeling handoff from click → center → open.
     gsap.to(proxy, {
       v: targetScroll,
-      duration: isDesktop ? 1.25 : 1.8,
-      ease: isDesktop ? "power2.out" : "sine.inOut",
+      duration: isDesktop ? 0.85 : 1.2,
+      ease: "expo.out",
       onUpdate: () => {
         posRef.current.current = proxy.v;
         posRef.current.target = proxy.v;

@@ -399,7 +399,7 @@ export default function ProjectDetailPanel({
         className="scrollbar-hide flex h-full touch-pan-y flex-col overflow-y-auto"
       >
         {/* Top section: Title (left) + meta column (right) — 2-cols on all screens */}
-        <div className="flex shrink-0 flex-row items-start justify-between gap-4 px-[12px] pt-[12px] pb-[32px] md:gap-8 md:pb-[48px]">
+        <div className="flex shrink-0 flex-row items-start justify-between gap-4 px-[12px] pt-[64px] pb-[32px] md:gap-8 md:pt-[12px] md:pb-[48px]">
           <h2
             data-reveal="header"
             className="w-[25%] shrink-0 text-[18px] font-semibold leading-[1.09] tracking-[-0.54px] text-[#2d2f2f] md:w-auto md:text-[30px] md:tracking-[-0.91px]"

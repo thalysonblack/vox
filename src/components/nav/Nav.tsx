@@ -70,7 +70,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
         onClick={onLogoClick}
         aria-label="Voltar para home"
         data-vox-logo
-        className="pointer-events-auto shrink-0 origin-top-left cursor-pointer transition-transform duration-500 ease-out mix-blend-difference invert"
+        className="pointer-events-auto shrink-0 origin-top-left cursor-pointer transition-transform duration-500 ease-out mix-blend-difference invert md:mix-blend-normal md:invert-0"
         style={{ transform: compact ? "scale(0.72)" : "scale(1)" }}
       >
         <Image
@@ -102,7 +102,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
           {/* CONNECT button — always in same position */}
           <button
             onClick={() => setContactOpen(!contactOpen)}
-            className="relative z-[102] flex cursor-pointer items-center gap-2 mix-blend-difference invert"
+            className="relative z-[102] flex cursor-pointer items-center gap-2 mix-blend-difference invert md:mix-blend-normal md:invert-0"
           >
             <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] text-black">
               CONNECT

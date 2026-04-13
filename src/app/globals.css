@@ -10,8 +10,11 @@
 :root {
   --background: #fdfdfc;
   --foreground: #000000;
-  /* Fluid project card sizing — preserves 446:601 aspect ratio (ratio 1.348). */
-  --pc-w: clamp(280px, 31vw, 695px);
+  /* Fluid project card sizing — preserves 446:601 aspect ratio (ratio 1.348).
+     The vw multiplier is tuned so that in vertical mode (panel open) the
+     column fits in the safe zone between the VOX logo and the detail panel
+     at ~22vw even on narrower desktop viewports (1280+). */
+  --pc-w: clamp(160px, 18vw, 535px);
   --pc-h: calc(var(--pc-w) * 1.348);
 }
 @media (max-width: 767px) {

@@ -370,9 +370,15 @@ export default function ProjectDetailPanel({
         visible ? "translate-x-0" : "translate-x-full"
       }`}
       style={{
-        transitionProperty: "transform",
-        transitionDuration: "800ms",
-        transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+        // Transform slides the panel in/out (800ms with ease-out-expo curve).
+        // Opacity fades in fast on open, and fades out at the TAIL of the slide
+        // so the panel is already invisible before React unmounts — no flash.
+        opacity: visible ? 1 : 0,
+        transitionProperty: "transform, opacity",
+        transitionDuration: visible ? "800ms, 200ms" : "800ms, 300ms",
+        transitionDelay: visible ? "0ms, 0ms" : "0ms, 550ms",
+        transitionTimingFunction:
+          "cubic-bezier(0.22, 1, 0.36, 1), ease-out",
       }}
     >
       {/* Close button — min 44px touch target */}

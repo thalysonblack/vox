@@ -300,10 +300,11 @@ export default function ProjectCarousel({
     }
 
     // Mobile: stay in vertical mode, don't reverse to horizontal.
-    // Timeout matches the panel slide-out duration (800ms) so the panel
-    // fully disappears before unmount (no flash of the home background).
+    // Unmount AFTER the panel's opacity fade completes (550ms delay + 300ms
+    // duration = 850ms) plus a small safety buffer so React doesn't drop
+    // the element while it's still fractionally visible.
     if (isMobileRef.current) {
-      setTimeout(() => setSelectedProject(null), 850);
+      setTimeout(() => setSelectedProject(null), 950);
       onDetailClose?.();
       return;
     }

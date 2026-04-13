@@ -84,17 +84,17 @@ export const EASE = {
 // --- Mobile vertical physics (momentum + free-scroll snap) ---
 export const MOBILE_PHYSICS = {
   /** Friction coefficient per frame (higher = longer glide) */
-  friction: 0.998,
+  friction: 0.95,
   /** Lag factor for pos.current chasing pos.target (higher = smoother) */
-  smoothLag: 0.985,
+  smoothLag: 0.92,
   /** Multiplier applied to wheel deltaY to produce impulse */
-  wheelImpulse: 0.125,
+  wheelImpulse: 0.2,
   /** Fling multiplier applied to last drag velocity */
-  flingMultiplier: 1,
+  flingMultiplier: 1.5,
   /** Idle time before snap animation kicks in (ms) */
-  snapDelay: 2500,
+  snapDelay: 600,
   /** Final snap tween duration */
-  snapDuration: 1,
+  snapDuration: 0.45,
   /** Mobile-specific scale boost over desktop PHASE_B tiers */
   scaleBoost: 1.3,
 } as const;

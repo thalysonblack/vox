@@ -127,7 +127,7 @@ export default function ProjectCarousel({
     // momentum curve. Duration is long enough to perceive the motion.
     gsap.to(proxy, {
       v: targetScroll,
-      duration: 1.4,
+      duration: 1.15,
       ease: "sine.inOut",
       onUpdate: () => {
         posRef.current.current = proxy.v;

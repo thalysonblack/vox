@@ -40,7 +40,11 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
   const [panelTextColor, setPanelTextColor] = useState<"black" | "white">(
     "black",
   );
+  const [logoDark, setLogoDark] = useState(false);
+  const [connectDark, setConnectDark] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLButtonElement>(null);
+  const connectBtnRef = useRef<HTMLButtonElement>(null);
 
   // When the CONNECT panel opens, probe what's behind it and pick a
   // text color for max contrast.
@@ -51,7 +55,6 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
     const rect = panel.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    // Temporarily hide the panel so elementFromPoint returns what's under it.
     const prev = panel.style.visibility;
     panel.style.visibility = "hidden";
     const underneath = document.elementFromPoint(cx, cy);
@@ -60,18 +63,50 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
     setPanelTextColor(lum > 0.55 ? "black" : "white");
   }, [contactOpen]);
 
+  // Probe what's under the logo + CONNECT button and flip their colors
+  // for contrast. Throttled to 120ms to keep the cost negligible while
+  // still feeling responsive as the carousel scrolls under them.
+  useEffect(() => {
+    const sampleEl = (el: HTMLElement | null) => {
+      if (!el) return null;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0) return null;
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const prev = el.style.visibility;
+      el.style.visibility = "hidden";
+      const under = document.elementFromPoint(cx, cy);
+      el.style.visibility = prev;
+      return bgLuminance(under);
+    };
+    const probe = () => {
+      const lumLogo = sampleEl(logoRef.current);
+      if (lumLogo !== null) setLogoDark(lumLogo < 0.5);
+      const lumConn = sampleEl(connectBtnRef.current);
+      if (lumConn !== null) setConnectDark(lumConn < 0.5);
+    };
+    probe();
+    const id = window.setInterval(probe, 120);
+    return () => window.clearInterval(id);
+  }, []);
+
   return (
     <nav
       className="relative z-[100] flex shrink-0 items-start gap-6"
       aria-label="Menu principal"
     >
       <button
+        ref={logoRef}
         type="button"
         onClick={onLogoClick}
         aria-label="Voltar para home"
         data-vox-logo
-        className="pointer-events-auto shrink-0 origin-top-left cursor-pointer transition-transform duration-500 ease-out mix-blend-difference invert md:mix-blend-normal md:invert-0"
-        style={{ transform: compact ? "scale(0.72)" : "scale(1)" }}
+        className="pointer-events-auto shrink-0 origin-top-left cursor-pointer transition-transform duration-500 ease-out"
+        style={{
+          transform: compact ? "scale(0.72)" : "scale(1)",
+          filter: logoDark ? "invert(1)" : "none",
+          transitionProperty: "transform, filter",
+        }}
       >
         <Image
           src="/assets/vox-logo.svg"
@@ -101,10 +136,12 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
         >
           {/* CONNECT button — always in same position */}
           <button
+            ref={connectBtnRef}
             onClick={() => setContactOpen(!contactOpen)}
-            className="relative z-[102] flex cursor-pointer items-center gap-2 mix-blend-difference invert md:mix-blend-normal md:invert-0"
+            className="relative z-[102] flex cursor-pointer items-center gap-2"
+            style={{ color: connectDark ? "white" : "black" }}
           >
-            <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] text-black">
+            <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
               CONNECT
             </span>
             <svg
@@ -116,13 +153,13 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
             >
               <path
                 d="M1 6H11"
-                stroke="black"
+                stroke="currentColor"
                 strokeLinecap="square"
                 strokeLinejoin="round"
               />
               <path
                 d="M6 1V11"
-                stroke="black"
+                stroke="currentColor"
                 strokeLinecap="square"
                 strokeLinejoin="round"
               />

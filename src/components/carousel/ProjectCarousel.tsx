@@ -506,6 +506,22 @@ export default function ProjectCarousel({
     ro.observe(set1);
     window.addEventListener("resize", updateSetWidth);
 
+    // Initial peek offset — shift the horizontal strip right by ~35% of a
+    // card so the leftmost visible card is cropped, signaling "there's more
+    // content off to the left" (and mirrored on the right by the overflow).
+    // Only applies if we're in horizontal mode (desktop) on mount.
+    if (!isMobile) {
+      const firstCard = set1.querySelector<HTMLElement>("[data-project-id]");
+      if (firstCard) {
+        const cardW = firstCard.getBoundingClientRect().width;
+        if (cardW > 0) {
+          const peek = cardW * 0.35;
+          posRef.current.target = peek;
+          posRef.current.current = peek;
+        }
+      }
+    }
+
     // Responsive: on viewport resize, rebuild vertical state (if in vertical mode)
     // so the column X + card scales adapt to the new viewport without a page reload.
     // Also handles mobile ↔ desktop breakpoint crossings.

@@ -210,8 +210,7 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
     gap = PHASE_B.gap;
   }
 
-  // --- Compute dynamic columnX: center card between VOX logo and close button ---
-  const PADDING = 24;
+  // --- Compute dynamic columnX: center card in the available whitespace ---
   const logoEl = document.querySelector<HTMLElement>("[data-vox-logo]");
   const logoRight = logoEl
     ? logoEl.getBoundingClientRect().right - vpRect.left
@@ -219,18 +218,21 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   // Close button sits just outside the detail panel's left edge; panel is at 22vw on md+.
   const panelLeft = fullWinW >= 768 ? fullWinW * 0.22 : fullWinW;
   const closeButtonWidth = 22 + 8; // button + offset
-  const rightBoundary = panelLeft - closeButtonWidth - vpRect.left;
+  const closeButtonLeft = panelLeft - closeButtonWidth - vpRect.left;
 
-  // If the safe zone is smaller than the natural center card width, shrink
-  // the vertical scales proportionally so the card fits without overflowing
-  // into the detail panel. Desktop horizontal carousel keeps its full size.
+  // Desktop: the available whitespace is the area from the logo's right edge
+  // to the close button's left edge. We size the visible center card to take
+  // ~72% of that width (so there's breathing room on both sides), and then
+  // center it horizontally within the same area. This makes the layout
+  // responsive — shrinking proportionally on narrow viewports, growing on wide.
   if (!isSmall) {
-    const safeLeft = logoRight + PADDING;
-    const safeRight = rightBoundary - PADDING;
-    const safeZone = Math.max(0, safeRight - safeLeft);
+    const availLeft = logoRight;
+    const availRight = closeButtonLeft;
+    const availWidth = Math.max(0, availRight - availLeft);
+    const targetVisibleCenterW = availWidth * 0.72;
     const naturalCenterW = cardW * centerScale;
-    if (naturalCenterW > safeZone && safeZone > 0) {
-      const shrink = safeZone / naturalCenterW;
+    if (targetVisibleCenterW < naturalCenterW && naturalCenterW > 0) {
+      const shrink = targetVisibleCenterW / naturalCenterW;
       centerScale *= shrink;
       adjacentScale *= shrink;
       otherScale *= shrink;
@@ -244,17 +246,12 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
     // Mobile: center card horizontally (full-screen, no panel).
     dynamicColumnX = (fullWinW - pBCenterCw) / 2;
   } else {
-    // Desktop: center the card horizontally in the safe zone between the
-    // logo (left) and the detail panel edge (right). Clamped so it never
-    // crosses either boundary.
-    const safeLeft = logoRight + PADDING;
-    const safeRight = rightBoundary - PADDING;
-    const safeMid = (safeLeft + safeRight) / 2;
-    const centered = safeMid - pBCenterCw / 2;
-    dynamicColumnX = Math.max(
-      safeLeft,
-      Math.min(centered, safeRight - pBCenterCw),
-    );
+    // Desktop: center the (possibly shrunk) card in the available whitespace
+    // between the logo and the close button.
+    const availLeft = logoRight;
+    const availRight = closeButtonLeft;
+    const availMid = (availLeft + availRight) / 2;
+    dynamicColumnX = availMid - pBCenterCw / 2;
   }
 
   const pBCenterCh = cardH * centerScale;

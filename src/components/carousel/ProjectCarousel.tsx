@@ -122,10 +122,13 @@ export default function ProjectCarousel({
     // any desync between the two fields during the tween.
     isPhysicsPausedRef.current = true;
     const proxy = { v: posRef.current.current };
+    // Shorter on desktop (click is the only input, needs to feel responsive).
+    const isDesktop =
+      typeof window !== "undefined" && window.innerWidth >= 768;
     gsap.to(proxy, {
       v: targetScroll,
-      duration: 1.8,
-      ease: "sine.inOut",
+      duration: isDesktop ? 1.25 : 1.8,
+      ease: isDesktop ? "power2.out" : "sine.inOut",
       onUpdate: () => {
         posRef.current.current = proxy.v;
         posRef.current.target = proxy.v;
@@ -297,8 +300,10 @@ export default function ProjectCarousel({
     }
 
     // Mobile: stay in vertical mode, don't reverse to horizontal.
+    // Timeout matches the panel slide-out duration (800ms) so the panel
+    // fully disappears before unmount (no flash of the home background).
     if (isMobileRef.current) {
-      setTimeout(() => setSelectedProject(null), 500);
+      setTimeout(() => setSelectedProject(null), 850);
       onDetailClose?.();
       return;
     }

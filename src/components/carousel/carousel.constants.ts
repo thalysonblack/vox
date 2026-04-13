@@ -32,8 +32,9 @@ export const TIMING = {
   horizontalStart: 0.35,
   /** When to open detail panel during choreography */
   detailOpenAt: 0.85,
-  /** Reverse animation duration */
-  reverseDur: 0.85,
+  /** Reverse animation duration — matches panel slide-out (0.8s) for
+   *  a seamless close with no visual gap. */
+  reverseDur: 0.8,
   /** Vertical snap scroll duration */
   verticalSnapDur: 0.25,
   /** Vertical tap-scroll duration */

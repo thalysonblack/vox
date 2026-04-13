@@ -190,13 +190,25 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   const fullWinW = window.innerWidth;
   const effectiveVpH = Math.max(vpH, fullWinH - vpRect.top - 24);
 
-  // Mobile uses the same vertical carousel as desktop, but 30% bigger.
+  // Mobile gets its own tuned scales — smaller than desktop×1.3 so 6-7
+  // slots can fit with the outermost pair slightly cropped at viewport edges.
   const isSmall = fullWinW < 768;
-  const scaleBoost = isSmall ? MOBILE_PHYSICS.scaleBoost : 1;
-  const centerScale = PHASE_B.centerScale * scaleBoost;
-  const adjacentScale = PHASE_B.adjacentScale * scaleBoost;
-  const otherScale = PHASE_B.otherScale * scaleBoost;
-  const gap = PHASE_B.gap * scaleBoost;
+  let centerScale: number;
+  let adjacentScale: number;
+  let otherScale: number;
+  let gap: number;
+  if (isSmall) {
+    // +10% over the previous tuning — still fits 6-7 slots with edge crop.
+    centerScale = 0.495;
+    adjacentScale = 0.352;
+    otherScale = 0.22;
+    gap = 28;
+  } else {
+    centerScale = PHASE_B.centerScale;
+    adjacentScale = PHASE_B.adjacentScale;
+    otherScale = PHASE_B.otherScale;
+    gap = PHASE_B.gap;
+  }
 
   // --- Compute dynamic columnX: center card between VOX logo and close button ---
   const PADDING = 24;

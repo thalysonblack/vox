@@ -366,9 +366,14 @@ export default function ProjectDetailPanel({
   return (
     <div
       ref={panelRef}
-      className={`fixed top-0 right-0 bottom-0 left-0 z-[201] bg-[#f7f6f3] transition-transform duration-500 ease-out md:left-[22vw] xl:left-[min(22vw,440px)] ${
+      className={`fixed top-0 right-0 bottom-0 left-0 z-[201] bg-[#f7f6f3] md:left-[22vw] xl:left-[min(22vw,440px)] ${
         visible ? "translate-x-0" : "translate-x-full"
       }`}
+      style={{
+        transitionProperty: "transform",
+        transitionDuration: "800ms",
+        transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+      }}
     >
       {/* Close button — min 44px touch target */}
       <button

@@ -37,8 +37,10 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
           logo + CONNECT stay visible when a project is open.
           Wrapper is pointer-events-none — only the logo/CONNECT buttons
           inside Nav have pointer-events-auto so clicks on the middle area
-          (e.g. the close button) pass through. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[210] px-3 pt-3 pb-3">
+          (e.g. the close button) pass through.
+          Mobile uses mix-blend-difference so the nav inverts over any
+          content behind it (always legible regardless of card color). */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[210] px-3 pt-3 pb-3 mix-blend-difference invert md:mix-blend-normal md:invert-0">
         <Nav compact={detailOpen && !isMobile} onLogoClick={goHome} />
       </div>
 

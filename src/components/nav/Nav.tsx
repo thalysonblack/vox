@@ -21,7 +21,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
         onClick={onLogoClick}
         aria-label="Voltar para home"
         data-vox-logo
-        className="shrink-0 origin-top-left cursor-pointer transition-transform duration-500 ease-out"
+        className="pointer-events-auto shrink-0 origin-top-left cursor-pointer transition-transform duration-500 ease-out"
         style={{ transform: compact ? "scale(0.72)" : "scale(1)" }}
       >
         <Image
@@ -47,7 +47,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
         </div>
 
         <div
-          className="relative"
+          className="pointer-events-auto relative"
           onMouseLeave={() => setContactOpen(false)}
         >
           {/* CONNECT button — always in same position */}

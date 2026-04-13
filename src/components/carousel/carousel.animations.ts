@@ -228,10 +228,17 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
     // Mobile: center card horizontally (full-screen, no panel).
     dynamicColumnX = (fullWinW - pBCenterCw) / 2;
   } else {
+    // Desktop: center the card horizontally in the safe zone between the
+    // logo (left) and the detail panel edge (right). Clamped so it never
+    // crosses either boundary.
     const safeLeft = logoRight + PADDING;
     const safeRight = rightBoundary - PADDING;
-    const maxColumnX = Math.max(PADDING, safeRight - pBCenterCw);
-    dynamicColumnX = Math.max(PADDING, Math.min(safeLeft, maxColumnX));
+    const safeMid = (safeLeft + safeRight) / 2;
+    const centered = safeMid - pBCenterCw / 2;
+    dynamicColumnX = Math.max(
+      safeLeft,
+      Math.min(centered, safeRight - pBCenterCw),
+    );
   }
 
   const pBCenterCh = cardH * centerScale;

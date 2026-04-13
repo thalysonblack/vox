@@ -124,12 +124,13 @@ export default function ProjectCarousel({
     const proxy = { v: posRef.current.current };
     const isDesktop =
       typeof window !== "undefined" && window.innerWidth >= 768;
-    // ease-out-expo cubic-bezier — matches the panel slide curve for a
-    // consistent, premium-feeling handoff from click → center → open.
+    // Fast + smooth: power4.out has a clean, premium deceleration (no
+    // soft/hard edge), and the shorter duration feels snappy like a
+    // professional carousel.
     gsap.to(proxy, {
       v: targetScroll,
-      duration: isDesktop ? 0.85 : 1.2,
-      ease: "expo.out",
+      duration: isDesktop ? 0.65 : 0.9,
+      ease: "power4.out",
       onUpdate: () => {
         posRef.current.current = proxy.v;
         posRef.current.target = proxy.v;

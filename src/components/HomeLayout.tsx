@@ -33,11 +33,12 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
   return (
     <div className="relative h-[100dvh] touch-none overflow-hidden bg-[#fdfdfc]">
       {/* Nav sits ABOVE the detail panel (z > panel's 201) on mobile so the
-          logo + CONNECT stay visible when a project is open. */}
+          logo + CONNECT stay visible when a project is open.
+          Wrapper is pointer-events-none — only the logo/CONNECT buttons
+          inside Nav have pointer-events-auto so clicks on the middle area
+          (e.g. the close button) pass through. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[210] px-3 pt-3 pb-3">
-        <div className="pointer-events-auto">
-          <Nav compact={detailOpen && !isMobile} onLogoClick={goHome} />
-        </div>
+        <Nav compact={detailOpen && !isMobile} onLogoClick={goHome} />
       </div>
 
       <div className="absolute inset-0 flex flex-col">

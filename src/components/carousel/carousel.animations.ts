@@ -252,11 +252,11 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
     // Mobile: center card horizontally (full-screen, no panel).
     dynamicColumnX = (fullWinW - pBCenterCw) / 2;
   } else {
-    // Desktop: center the (possibly shrunk) card in the available whitespace
-    // between the logo and the panel (with SAFETY_MARGIN of breathing room).
-    const availLeft = logoRight;
-    const availRight = rightBoundary;
-    const availMid = (availLeft + availRight) / 2;
+    // Desktop: center the (possibly shrunk) card in the actual visible
+    // whitespace between the logo and the panel's left edge. The safety
+    // margin is used for SIZING (shrink), not for the centering midpoint —
+    // otherwise the card drifts too far left of the true center.
+    const availMid = (logoRight + panelLeft - vpRect.left) / 2;
     dynamicColumnX = availMid - pBCenterCw / 2;
   }
 

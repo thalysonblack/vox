@@ -76,6 +76,8 @@ export default function ProjectCarousel({
   // --- Detail panel state ---
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [panelVisible, setPanelVisible] = useState(false);
+  const selectedProjectIdRef = useRef<string | null>(null);
+  selectedProjectIdRef.current = selectedProject?.id ?? null;
 
   // --- Animation state ---
   const isAnimatingRef = useRef(false);
@@ -648,17 +650,13 @@ export default function ProjectCarousel({
         handleTapRef.current(project, el),
       onCenterChange: (projectId: string) => {
         // After a wheel/drag snap, if the new center card is a different
-        // project than the one currently open in the detail panel, open it.
-        // Does nothing if the panel isn't open (no mode change).
-        const list = projectsRef.current;
-        const project = list.find((p) => p.id === projectId);
-        if (!project) return;
-        setSelectedProject((current) => {
-          if (current && current.id === projectId) return current;
-          if (!current) return current; // panel not open, don't auto-open
-          openDetailForProject(project);
-          return current;
-        });
+        // project than the one currently open, update the detail panel.
+        // Only runs if a project is already open (doesn't auto-open).
+        const currentId = selectedProjectIdRef.current;
+        if (!currentId) return;
+        if (currentId === projectId) return;
+        const project = projectsRef.current.find((p) => p.id === projectId);
+        if (project) openDetailForProject(project);
       },
     };
 

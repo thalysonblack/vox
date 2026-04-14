@@ -646,6 +646,20 @@ export default function ProjectCarousel({
       getProjects: () => projectsRef.current,
       onTap: (project: ProjectListItem, el: HTMLElement) =>
         handleTapRef.current(project, el),
+      onCenterChange: (projectId: string) => {
+        // After a wheel/drag snap, if the new center card is a different
+        // project than the one currently open in the detail panel, open it.
+        // Does nothing if the panel isn't open (no mode change).
+        const list = projectsRef.current;
+        const project = list.find((p) => p.id === projectId);
+        if (!project) return;
+        setSelectedProject((current) => {
+          if (current && current.id === projectId) return current;
+          if (!current) return current; // panel not open, don't auto-open
+          openDetailForProject(project);
+          return current;
+        });
+      },
     };
 
     const handleWheel = createWheelHandler(eventCtx);

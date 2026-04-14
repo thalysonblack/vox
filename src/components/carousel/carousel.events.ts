@@ -49,6 +49,27 @@ export interface EventContext {
   setWheelAccum: (v: number) => void;
   getProjects: () => ProjectListItem[];
   onTap: (project: ProjectListItem, el: HTMLElement) => void;
+  /** Called after a scroll/drag snap when the center card changes. */
+  onCenterChange?: (projectId: string) => void;
+}
+
+// Find the canonical card at slot 0 given pos.target and vState.
+function findCenterCardId(
+  vState: VerticalState,
+  posTarget: number,
+): string | null {
+  const n = vState.cards.length;
+  const halfN = n / 2;
+  const scrollSlots = posTarget / vState.stepY;
+  for (const c of vState.cards) {
+    let slotOff = c.baseOffset + scrollSlots;
+    slotOff = ((slotOff % n) + n) % n;
+    if (slotOff >= halfN) slotOff -= n;
+    if (Math.abs(slotOff) < 0.5) {
+      return c.el.dataset.projectId ?? null;
+    }
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -73,6 +94,10 @@ export function createWheelHandler(ctx: EventContext) {
         current: nearest,
         duration: MOBILE_PHYSICS.snapDuration,
         ease: EASE.snap,
+        onComplete: () => {
+          const centerId = findCenterCardId(vState, nearest);
+          if (centerId) ctx.onCenterChange?.(centerId);
+        },
       });
     }, delay);
   };
@@ -185,7 +210,8 @@ export function createPointerHandlers(ctx: EventContext) {
         }
       } else {
         // Fling: apply momentum impulse from last drag velocity, let it decay,
-        // then snap to nearest slot after idle.
+        // then snap to nearest slot after idle and update the detail panel
+        // to the new center project.
         const flingImpulse = d.lastDx * MOBILE_PHYSICS.flingMultiplier;
         ctx.setImpulse(flingImpulse);
 
@@ -202,6 +228,10 @@ export function createPointerHandlers(ctx: EventContext) {
               current: nearest,
               duration: MOBILE_PHYSICS.snapDuration,
               ease: EASE.snap,
+              onComplete: () => {
+                const centerId = findCenterCardId(vState, nearest);
+                if (centerId) ctx.onCenterChange?.(centerId);
+              },
             });
           }, MOBILE_PHYSICS.snapDelay);
         }

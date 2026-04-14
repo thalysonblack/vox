@@ -422,7 +422,14 @@ export function createChoreographyTimeline(
       vState.stepOther,
     );
     const pBCy = pBClickedCy + pBYOffset;
-    const pBScaleI = computeSlotScale(Math.abs(slotOffset));
+    // Pass vState's (possibly shrunk) scales so the choreography ends at
+    // EXACTLY the same sizes the physics tick will use afterwards — no jump.
+    const pBScaleI = computeSlotScale(
+      absSlot,
+      vState.centerScale,
+      vState.adjacentScale,
+      vState.otherScale,
+    );
 
     // Y + scale
     tl.to(el, { y: pBCy - curCy, scale: pBScaleI, rotation: 0, duration: TIMING.verticalDur }, 0);

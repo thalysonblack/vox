@@ -396,34 +396,6 @@ export default function ProjectCarousel({
   }, [initialSlug]);
 
   // -----------------------------------------------------------------------
-  // Cinematic entrance — stagger cards on first mount (home only)
-  // -----------------------------------------------------------------------
-
-  const hasEnteredRef = useRef(false);
-
-  useEffect(() => {
-    if (initialSlug || hasEnteredRef.current) return;
-    // Skip on mobile — we're in vertical mode already, this would clobber positions.
-    if (typeof window !== "undefined" && window.innerWidth < 768) return;
-    const set1 = set1Ref.current;
-    if (!set1) return;
-    hasEnteredRef.current = true;
-
-    const cards = Array.from(
-      set1.querySelectorAll<HTMLElement>("[data-project-id]"),
-    );
-    if (cards.length === 0) return;
-
-    gsap.from(cards, {
-      x: 60,
-      duration: 0.8,
-      stagger: 0.08,
-      ease: "power3.out",
-      delay: 0.15,
-    });
-  }, [initialSlug]);
-
-  // -----------------------------------------------------------------------
   // Mobile: enter vertical mode BEFORE paint to avoid horizontal flash
   // -----------------------------------------------------------------------
 
@@ -721,11 +693,23 @@ export default function ProjectCarousel({
     if (didStaggerInRef.current) return;
     const strip = stripRef.current;
     if (!strip) return;
+
+    // Mobile: cards are already in vertical mode; skip the stagger
+    // because it would clobber their positions. Still mark as done
+    // so a subsequent introDone re-flip doesn't retry.
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      didStaggerInRef.current = true;
+      return;
+    }
+
+    const set1 = set1Ref.current;
+    if (!set1) return;
     didStaggerInRef.current = true;
 
     // Cards all have data-project-id on their root div.
+    // Query from set1 to avoid animating the duplicate set2 used for infinite scroll.
     const cards = Array.from(
-      strip.querySelectorAll<HTMLElement>("[data-project-id]"),
+      set1.querySelectorAll<HTMLElement>("[data-project-id]"),
     );
     if (cards.length === 0) return;
 

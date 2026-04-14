@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ContentBlockRenderer from "./ContentBlock";
@@ -41,7 +41,12 @@ export default function ProjectDetailPanel({
   onClose,
   onScrollPastEnd,
 }: ProjectDetailPanelProps) {
-  const { detail } = project;
+  // Displayed project is held in local state so we can do a crossfade:
+  // the OLD project stays rendered during the fade-out, then we swap to
+  // the new project and fade it back in. Avoids the "snap" of rendering
+  // the new content underneath a fading-out opacity layer.
+  const [displayedProject, setDisplayedProject] = useState(project);
+  const { detail } = displayedProject;
   const panelRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const gsapCtxRef = useRef<gsap.Context | null>(null);
@@ -74,32 +79,42 @@ export default function ProjectDetailPanel({
   // of the new project instead of being rushed down by residual scroll.
   const scrollLockRef = useRef(false);
 
-  // When the project changes (via scroll-past-end or direct navigation),
-  // reset the panel scroll position to the top, briefly fade the content
-  // for a soft swap, AND lock scroll until everything settles.
+  // Crossfade between projects: fade the OLD project out, swap the
+  // displayed content, fade the NEW one in. The displayed project is
+  // held in local state so the OLD content stays mounted during the
+  // fade-out phase.
   useEffect(() => {
+    if (project.id === displayedProject.id) return;
     const scroller = scrollRef.current;
     if (!scroller) return;
 
-    // Smoothly reset scroll and fade content out/in around the swap.
-    scroller.style.transition = "opacity 250ms ease-out";
+    const FADE_OUT = 320;
+    const FADE_IN = 420;
+
+    scroller.style.transition = `opacity ${FADE_OUT}ms ease-in`;
     scroller.style.opacity = "0";
-    const fadeBack = window.setTimeout(() => {
+
+    const swapTimer = window.setTimeout(() => {
+      setDisplayedProject(project);
       scroller.scrollTop = 0;
-      scroller.style.opacity = "1";
-    }, 260);
+      // Wait one frame for the new content to mount, then fade back in.
+      requestAnimationFrame(() => {
+        scroller.style.transition = `opacity ${FADE_IN}ms ease-out`;
+        scroller.style.opacity = "1";
+      });
+    }, FADE_OUT);
 
     scrollLockRef.current = true;
     const release = window.setTimeout(() => {
       scrollLockRef.current = false;
       scroller.style.transition = "";
-    }, 1100);
+    }, FADE_OUT + FADE_IN + 150);
 
     return () => {
-      window.clearTimeout(fadeBack);
+      window.clearTimeout(swapTimer);
       window.clearTimeout(release);
     };
-  }, [project.id]);
+  }, [project.id, displayedProject.id]);
 
   // Enforce the scroll lock on wheel/touch events and keep scrollTop at 0.
   useEffect(() => {
@@ -246,7 +261,7 @@ export default function ProjectDetailPanel({
       scroller.removeEventListener("touchend", onTouchEnd);
       setProgress(0);
     };
-  }, [visible, onScrollPastEnd, project.id]);
+  }, [visible, onScrollPastEnd, displayedProject.id]);
 
   // Scroll reveal animations
   useEffect(() => {
@@ -361,7 +376,7 @@ export default function ProjectDetailPanel({
       gsapCtxRef.current?.revert();
       gsapCtxRef.current = null;
     };
-  }, [visible, project.id]);
+  }, [visible, displayedProject.id]);
 
   return (
     <div
@@ -405,7 +420,7 @@ export default function ProjectDetailPanel({
             data-reveal="header"
             className="w-[25%] shrink-0 text-[18px] font-semibold leading-[1.09] tracking-[-0.54px] text-[#2d2f2f] md:w-auto md:text-[30px] md:tracking-[-0.91px]"
           >
-            {project.name}
+            {displayedProject.name}
           </h2>
 
           <div className="flex flex-1 shrink-0 flex-col md:w-[50%] md:max-w-[720px] md:flex-none">

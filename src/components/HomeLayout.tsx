@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Nav from "@/components/nav/Nav";
 import Footer from "@/components/footer/Footer";
 import ProjectCarousel from "@/components/carousel/ProjectCarousel";
@@ -22,8 +22,14 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
   const carouselReadyResolverRef = useRef<(() => void) | null>(null);
   const closeHandlerRef = useRef<() => void>(() => {});
 
+  // Build the readyPromise after mount (client only) so SSR has no
+  // Image global and the server's HTML matches the client's first render
+  // (no curtain mounted until the layout effect has run).
   const readyPromiseRef = useRef<Promise<unknown> | null>(null);
-  if (readyPromiseRef.current === null && !shouldSkipIntro) {
+  const [introReady, setIntroReady] = useState(false);
+  useLayoutEffect(() => {
+    if (shouldSkipIntro) return;
+    if (readyPromiseRef.current !== null) return;
     const carouselReady = new Promise<void>((resolve) => {
       carouselReadyResolverRef.current = resolve;
     });
@@ -36,7 +42,7 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
       .map((p) => p.image)
       .filter((url): url is string => Boolean(url))
       .map((url) => {
-        const img = new Image();
+        const img = new window.Image();
         img.src = url;
         return img.decode().catch(() => null);
       });
@@ -45,7 +51,8 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
       carouselReady,
       ...criticalImages,
     ]);
-  }
+    setIntroReady(true);
+  }, [shouldSkipIntro, projects]);
 
   useEffect(() => {
     const update = () => setIsMobile(window.innerWidth < 768);
@@ -77,7 +84,7 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
 
   return (
     <div className="relative h-[100dvh] touch-none overflow-hidden bg-[#fdfdfc]">
-      {!introDone && readyPromiseRef.current && (
+      {!introDone && introReady && readyPromiseRef.current && (
         <IntroCurtain
           readyPromise={readyPromiseRef.current}
           onHandoff={handleIntroHandoff}

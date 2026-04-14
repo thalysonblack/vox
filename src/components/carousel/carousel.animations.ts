@@ -217,27 +217,16 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
 
   // --- Compute dynamic columnX: the vertical carousel lives between the
   //     VOX logo (left) and the close button (right), centered in that
-  //     whitespace on ANY device regardless of panel width.
-  const logoEl = document.querySelector<HTMLElement>("[data-vox-logo]");
-  const logoRight = logoEl
-    ? logoEl.getBoundingClientRect().right - vpRect.left
-    : 80;
-  // Find the actual close button in the DOM (it's inside the detail panel
-  // positioned at left-[-8px] translate-x-full from the panel edge on md+).
-  const closeBtnEl = document.querySelector<HTMLElement>(
-    "[data-panel-close]",
-  );
-  let closeBtnLeft: number;
-  if (closeBtnEl) {
-    closeBtnLeft = closeBtnEl.getBoundingClientRect().left - vpRect.left;
-  } else {
-    // Fallback: CSS places panel at 22vw (xl capped at 440), button is
-    // 30px to the left of that edge.
-    const rawPanelLeft =
-      fullWinW >= 1280 ? Math.min(fullWinW * 0.22, 440) : fullWinW * 0.22;
-    const panelLeftFallback = fullWinW >= 768 ? rawPanelLeft : fullWinW;
-    closeBtnLeft = panelLeftFallback - 30 - vpRect.left;
-  }
+  //     whitespace on ANY device.
+  // Fixed layout values (matches the CSS layout), no DOM queries so we
+  // avoid compact-scale and transform-induced rect surprises.
+  // Logo: 12px wrapper padding + 69px image = 81px right edge.
+  // Panel: md:left-[22vw], xl:min(22vw,440px), button is 30px to the left.
+  const logoRight = 12 + 69 + 12; // padding + logo width + a little breathing gap
+  const rawPanelLeft =
+    fullWinW >= 1280 ? Math.min(fullWinW * 0.22, 440) : fullWinW * 0.22;
+  const panelLeft = fullWinW >= 768 ? rawPanelLeft : fullWinW;
+  const closeBtnLeft = panelLeft - 30;
 
   // Shrink the three tier scales so the center card takes ~80% of the
   // available whitespace — leaves ~10% margin on each side.

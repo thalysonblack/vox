@@ -225,17 +225,17 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   const closeButtonWidth = 22 + 8; // button + offset
   const closeButtonLeft = panelLeft - closeButtonWidth - vpRect.left;
 
-  // Desktop: size the visible center card to ~55% of the available width
-  // so there's generous breathing room on both sides — creates a clear,
-  // symmetric center regardless of viewport width.
+  // Desktop: fit the visible center card to ~85% of the available width
+  // (between logo and close button). Generous size while keeping a
+  // visible margin on both sides. Only shrinks — never grows past the
+  // base PHASE_B.centerScale so the cards don't balloon on wide viewports.
   if (!isSmall) {
     const availLeft = logoRight;
     const availRight = closeButtonLeft;
     const availWidth = Math.max(0, availRight - availLeft);
-    const targetVisibleCenterW = availWidth * 0.55;
+    const targetVisibleCenterW = availWidth * 0.85;
     const naturalCenterW = cardW * centerScale;
-    if (naturalCenterW > 0) {
-      // Always fit within the target (can grow OR shrink).
+    if (naturalCenterW > targetVisibleCenterW && naturalCenterW > 0) {
       const shrink = targetVisibleCenterW / naturalCenterW;
       centerScale *= shrink;
       adjacentScale *= shrink;

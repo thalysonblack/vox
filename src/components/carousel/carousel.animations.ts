@@ -159,13 +159,13 @@ export function enterVerticalDirectly(args: EnterVerticalDirectlyArgs) {
     );
     const targetY = vState.clickedCy + yOffset;
 
-    // NOTE: the innerDivs were translated by -savedScrollLeft a few lines
-    // above (before we rebuilt strip.scrollLeft = 0). Card `r` rects were
-    // captured BEFORE that shift, so curCx reflects the pre-shift position.
-    // We add savedScrollLeft to compensate so the card ends up exactly at
-    // p4X after both transforms (innerDivs + card) compose.
+    // curCx is computed from r.left (captured post-scroll, in viewport
+    // coords). The innerDivs shift above just preserves the card's visual
+    // position while moving from native scroll to gsap transform — so the
+    // card's VISUAL position is unchanged. X transform = p4X - curCx
+    // positions the visual center at p4X exactly (no savedScrollLeft term).
     gsap.set(el, {
-      x: p4X - curCx + savedScrollLeft,
+      x: p4X - curCx,
       y: targetY - curCy,
       scale,
       zIndex: i === vState.safeClickedIdx ? 100 : 80 - absSlot,
@@ -218,21 +218,19 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   // --- Compute dynamic columnX: the vertical carousel lives between the
   //     VOX logo (left) and the close button (right), centered in that
   //     whitespace on ANY device.
-  // Fixed layout values (matches the CSS layout), no DOM queries so we
-  // avoid compact-scale and transform-induced rect surprises.
-  // Logo: 12px wrapper padding + 69px image = 81px right edge.
-  // Panel: md:left-[22vw], xl:min(22vw,440px), button is 30px to the left.
-  const logoRight = 12 + 69 + 12; // padding + logo width + a little breathing gap
+  // Logo goes compact (scale 0.72) when the panel opens, so its right
+  // edge is at 12 + 69*0.72 ≈ 62. Add a tiny gap.
+  const logoRight = 12 + 69 * 0.72 + 4; // ≈ 66
   const rawPanelLeft =
     fullWinW >= 1280 ? Math.min(fullWinW * 0.22, 440) : fullWinW * 0.22;
   const panelLeft = fullWinW >= 768 ? rawPanelLeft : fullWinW;
   const closeBtnLeft = panelLeft - 30;
 
-  // Shrink the three tier scales so the center card takes ~80% of the
-  // available whitespace — leaves ~10% margin on each side.
+  // Cards fill ~95% of the whitespace — tight, leaving just a thin
+  // visual margin on both sides.
   if (!isSmall) {
     const availWidth = Math.max(0, closeBtnLeft - logoRight);
-    const targetVisibleCenterW = availWidth * 0.8;
+    const targetVisibleCenterW = availWidth * 0.95;
     const naturalCenterW = cardW * centerScale;
     if (naturalCenterW > targetVisibleCenterW && naturalCenterW > 0) {
       const shrink = targetVisibleCenterW / naturalCenterW;
@@ -442,8 +440,9 @@ export function createChoreographyTimeline(
 
     // Y + scale
     tl.to(el, { y: pBCy - curCy, scale: pBScaleI, rotation: 0, duration: TIMING.verticalDur }, 0);
-    // X slides left — compensate for the innerDivs shift applied above.
-    tl.to(el, { x: p4X - curCx + savedScrollLeft, duration: TIMING.horizontalDur }, TIMING.horizontalStart);
+    // X slides left. The innerDivs shift above preserved the card's visual
+    // position, so X = p4X - curCx positions the visual center at p4X.
+    tl.to(el, { x: p4X - curCx, duration: TIMING.horizontalDur }, TIMING.horizontalStart);
   });
 
   return tl;

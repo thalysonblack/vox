@@ -504,22 +504,37 @@ export function createReverseTimeline(ctx: ReverseContext): gsap.core.Timeline {
   gsap.killTweensOf(pos);
 
   const tl = gsap.timeline({
+    defaults: { ease: "expo.out" },
     onComplete: () => ctx.onComplete(rawNewScrollLeft),
   });
 
+  // Mirror the forward choreography but with the axes in reverse order:
+  // forward runs Y+scale first (at 0) and then X (at horizontalStart),
+  // so the reverse runs X first (at 0) and Y+scale second (at
+  // horizontalStart) — cards slide horizontally back into their row
+  // positions first, then expand/rotate back to their resting size.
   v.cards.forEach((c) => {
+    // Horizontal slide back to the row position.
     tl.to(
       c.el,
       {
         x: targetXDelta,
+        duration: TIMING.horizontalDur,
+      },
+      0,
+    );
+    // Y + scale + rotation back to resting; slightly offset so both
+    // axes overlap the way they do in the forward choreography.
+    tl.to(
+      c.el,
+      {
         y: 0,
         scale: 1,
         rotation: 0,
         opacity: 1,
-        duration: TIMING.reverseDur,
-        ease: "expo.out",
+        duration: TIMING.verticalDur,
       },
-      0,
+      TIMING.horizontalStart,
     );
   });
 

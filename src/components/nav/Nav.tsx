@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { TIMING } from "@/components/carousel/carousel.constants";
+import { EASE, TIMING } from "@/components/carousel/carousel.constants";
 
 interface NavProps {
   compact?: boolean;
@@ -83,8 +83,11 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
   }, []);
 
   // Nav lift: the whole nav slides UP, swaps the logo size while hidden
-  // above the viewport, then drops back DOWN at the new size. Smooth
-  // two-phase timeline synced with the carousel transformation.
+  // above the viewport, then drops back DOWN at the new size. Timing
+  // mirrors the carousel transformation — forward (project open) uses
+  // TIMING.verticalDur, reverse (project close) uses TIMING.reverseDur
+  // + EASE.reverse so the nav lands in sync with the cards flowing
+  // back into the horizontal row.
   useLayoutEffect(() => {
     if (prevCompactRef.current === compact) {
       setRenderedCompact(compact);
@@ -97,20 +100,23 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
       return;
     }
     gsap.killTweensOf(nav);
+    // Both directions now use the same staggered carousel choreography
+    // (horizontalStart + verticalDur), so the nav lift mirrors it.
+    const totalDur = TIMING.horizontalStart + TIMING.verticalDur;
+    const upDur = totalDur * 0.35;
+    const downDur = totalDur * 0.55;
     const tl = gsap.timeline();
-    // Phase 1: rise up and out of frame.
     tl.to(nav, {
       y: -120,
-      duration: TIMING.verticalDur * 0.42,
+      duration: upDur,
       ease: "power2.inOut",
     });
     // Swap the rendered logo size while hidden above the viewport.
     tl.call(() => setRenderedCompact(compact));
-    // Phase 2: drop back down at the new size.
     tl.to(nav, {
       y: 0,
-      duration: TIMING.verticalDur * 0.5,
-      ease: "power2.out",
+      duration: downDur,
+      ease: compact ? "power2.out" : EASE.reverse,
     });
   }, [compact]);
 
@@ -167,8 +173,8 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
           <img
             src="/assets/vox-logo.svg"
             alt="Good Taste"
-            width={renderedCompact ? 76 : isDesktop ? 353 : 105}
-            height={renderedCompact ? 11 : isDesktop ? 54 : 16}
+            width={renderedCompact ? 76 : isDesktop ? 353 : 180}
+            height={renderedCompact ? 11 : isDesktop ? 54 : 27}
             draggable={false}
             style={{ display: "block" }}
           />

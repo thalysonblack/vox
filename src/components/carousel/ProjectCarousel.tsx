@@ -307,13 +307,15 @@ export default function ProjectCarousel({
       window.history.pushState({}, "", "/");
     }
 
+    // Fire onDetailClose at the START of the close sequence (not on
+    // timeline completion) so the nav lift kicks off in the same frame
+    // as the click — mirrors how onDetailOpen fires at the start of
+    // runChoreography.
+    onDetailClose?.();
+
     // Mobile: stay in vertical mode, don't reverse to horizontal.
-    // Unmount AFTER the panel's opacity fade completes (550ms delay + 300ms
-    // duration = 850ms) plus a small safety buffer so React doesn't drop
-    // the element while it's still fractionally visible.
     if (isMobileRef.current) {
       setTimeout(() => setSelectedProject(null), 950);
-      onDetailClose?.();
       return;
     }
 
@@ -331,12 +333,10 @@ export default function ProjectCarousel({
           cleanupRef.current = null;
           isAnimatingRef.current = false;
           setSelectedProject(null);
-          onDetailClose?.();
         },
       });
     } else {
       setTimeout(() => setSelectedProject(null), 500);
-      onDetailClose?.();
     }
   }, [onDetailClose]);
 

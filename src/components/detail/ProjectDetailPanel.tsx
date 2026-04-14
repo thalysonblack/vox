@@ -83,6 +83,11 @@ export default function ProjectDetailPanel({
   // displayed content, fade the NEW one in. The displayed project is
   // held in local state so the OLD content stays mounted during the
   // fade-out phase.
+  //
+  // NOTE: the release of scrollLockRef is scheduled from INSIDE the swap
+  // timer's callback (not via a separate useEffect-owned timer) so the
+  // lock can't get stuck on when displayedProject updates and this effect
+  // re-runs with matching ids — cleanup would have cancelled the release.
   useEffect(() => {
     if (project.id === displayedProject.id) return;
     const scroller = scrollRef.current;
@@ -93,26 +98,26 @@ export default function ProjectDetailPanel({
 
     scroller.style.transition = `opacity ${FADE_OUT}ms ease-in`;
     scroller.style.opacity = "0";
+    scrollLockRef.current = true;
 
     const swapTimer = window.setTimeout(() => {
       setDisplayedProject(project);
       scroller.scrollTop = 0;
-      // Wait one frame for the new content to mount, then fade back in.
       requestAnimationFrame(() => {
         scroller.style.transition = `opacity ${FADE_IN}ms ease-out`;
         scroller.style.opacity = "1";
       });
+      // Release lock + clear transition AFTER the fade-in completes.
+      // Owned by the swap timer, not this useEffect, so it survives the
+      // dep-change re-run that happens when displayedProject updates.
+      window.setTimeout(() => {
+        scrollLockRef.current = false;
+        if (scrollRef.current) scrollRef.current.style.transition = "";
+      }, FADE_IN + 80);
     }, FADE_OUT);
-
-    scrollLockRef.current = true;
-    const release = window.setTimeout(() => {
-      scrollLockRef.current = false;
-      scroller.style.transition = "";
-    }, FADE_OUT + FADE_IN + 150);
 
     return () => {
       window.clearTimeout(swapTimer);
-      window.clearTimeout(release);
     };
   }, [project.id, displayedProject.id]);
 

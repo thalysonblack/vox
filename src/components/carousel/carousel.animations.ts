@@ -220,18 +220,20 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   const logoRight = logoEl
     ? logoEl.getBoundingClientRect().right - vpRect.left
     : 80;
-  // Close button sits just outside the detail panel's left edge; panel is at 22vw on md+.
-  const panelLeft = fullWinW >= 768 ? fullWinW * 0.22 : fullWinW;
-  const closeButtonWidth = 22 + 8; // button + offset
-  const closeButtonLeft = panelLeft - closeButtonWidth - vpRect.left;
+  // Panel at md: 22vw, capped at 440px on xl. Match the CSS exactly.
+  const rawPanelLeft =
+    fullWinW >= 1280 ? Math.min(fullWinW * 0.22, 440) : fullWinW * 0.22;
+  const panelLeft = fullWinW >= 768 ? rawPanelLeft : fullWinW;
+  const SAFETY_MARGIN = 48; // visual breathing room between card and panel edge
+  const rightBoundary = panelLeft - SAFETY_MARGIN - vpRect.left;
 
   // Desktop: fit the visible center card to ~85% of the available width
-  // (between logo and close button). Generous size while keeping a
-  // visible margin on both sides. Only shrinks — never grows past the
-  // base PHASE_B.centerScale so the cards don't balloon on wide viewports.
+  // (between logo and panel's left edge, with a 48px safety margin so it
+  // never touches the detail panel). Only shrinks — never grows past
+  // PHASE_B.centerScale.
   if (!isSmall) {
     const availLeft = logoRight;
-    const availRight = closeButtonLeft;
+    const availRight = rightBoundary;
     const availWidth = Math.max(0, availRight - availLeft);
     const targetVisibleCenterW = availWidth * 0.85;
     const naturalCenterW = cardW * centerScale;
@@ -251,9 +253,9 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
     dynamicColumnX = (fullWinW - pBCenterCw) / 2;
   } else {
     // Desktop: center the (possibly shrunk) card in the available whitespace
-    // between the logo and the close button.
+    // between the logo and the panel (with SAFETY_MARGIN of breathing room).
     const availLeft = logoRight;
-    const availRight = closeButtonLeft;
+    const availRight = rightBoundary;
     const availMid = (availLeft + availRight) / 2;
     dynamicColumnX = availMid - pBCenterCw / 2;
   }

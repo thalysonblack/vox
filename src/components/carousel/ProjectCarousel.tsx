@@ -33,6 +33,10 @@ interface ProjectCarouselProps {
   onDetailOpen?: () => void;
   onDetailClose?: () => void;
   onRegisterCloseHandler?: (handler: () => void) => void;
+  /** Fired once the strip has laid out with Sanity data present. */
+  onCarouselReady?: () => void;
+  /** When false, cards render hidden so the intro can stagger them in. */
+  introDone?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -45,6 +49,8 @@ export default function ProjectCarousel({
   onDetailOpen,
   onDetailClose,
   onRegisterCloseHandler,
+  onCarouselReady,
+  introDone = true,
 }: ProjectCarouselProps) {
   const router = useRouter();
 
@@ -89,6 +95,20 @@ export default function ProjectCarousel({
   const wheelAccumRef = useRef(0);
   const vStateRef = useRef<VerticalState | null>(null);
   const isMobileRef = useRef(false);
+
+  // -----------------------------------------------------------------------
+  // Signal carousel ready (one frame after strip mounts with projects)
+  // -----------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!onCarouselReady) return;
+    if (projects.length === 0) return;
+    const strip = stripRef.current;
+    if (!strip) return;
+    // One frame for layout, then signal ready.
+    const id = requestAnimationFrame(() => onCarouselReady());
+    return () => cancelAnimationFrame(id);
+  }, [onCarouselReady, projects.length]);
 
   // -----------------------------------------------------------------------
   // Open detail panel
@@ -692,6 +712,54 @@ export default function ProjectCarousel({
   }, [repeats]);
 
   // -----------------------------------------------------------------------
+  // Intro curtain hand-off: stagger cards in when introDone flips true
+  // -----------------------------------------------------------------------
+
+  const didStaggerInRef = useRef(false);
+  useEffect(() => {
+    if (!introDone) return;
+    if (didStaggerInRef.current) return;
+    const strip = stripRef.current;
+    if (!strip) return;
+    didStaggerInRef.current = true;
+
+    // Cards all have data-project-id on their root div.
+    const cards = Array.from(
+      strip.querySelectorAll<HTMLElement>("[data-project-id]"),
+    );
+    if (cards.length === 0) return;
+
+    const isVertical = modeRef.current === "vertical";
+    let ordered: HTMLElement[];
+    if (isVertical) {
+      // Center-out: middle card first, then zip outward alternating sides.
+      const mid = Math.floor(cards.length / 2);
+      ordered = [cards[mid]];
+      for (let d = 1; d <= Math.max(mid, cards.length - 1 - mid); d++) {
+        if (mid - d >= 0) ordered.push(cards[mid - d]);
+        if (mid + d < cards.length) ordered.push(cards[mid + d]);
+      }
+    } else {
+      // Horizontal: left-to-right (DOM order).
+      ordered = cards;
+    }
+
+    gsap.set(strip, { clearProps: "opacity,transform,pointerEvents" });
+    gsap.fromTo(
+      ordered,
+      { opacity: 0, y: 40 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        ease: "expo.out",
+        stagger: 0.04,
+        clearProps: "opacity,transform",
+      },
+    );
+  }, [introDone]);
+
+  // -----------------------------------------------------------------------
   // Render
   // -----------------------------------------------------------------------
 
@@ -727,6 +795,13 @@ export default function ProjectCarousel({
             ["--card-height" as string]: `${config.cardHeight}px`,
             ["--carousel-gap" as string]: `${config.gap}px`,
             ["--carousel-radius" as string]: `${config.radius}px`,
+            ...(introDone
+              ? null
+              : {
+                  opacity: 0,
+                  transform: "translateY(40px)",
+                  pointerEvents: "none" as const,
+                }),
           }}
         >
           <div

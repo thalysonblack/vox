@@ -226,6 +226,12 @@ export default function ProjectCarousel({
       );
       if (visible.length === 0) return;
 
+      // Fire onDetailOpen at the START of the choreography so the nav
+      // lift (driven by HomeLayout's detailOpen → compact prop) kicks off
+      // in the same frame as the card transformation — not at 85% of the
+      // timeline when openDetailForProject runs.
+      onDetailOpen?.();
+
       const clickedPid = clickedEl.dataset.projectId;
       const clickedIndex = clickedPid
         ? visible.findIndex((v) => v.el.dataset.projectId === clickedPid)
@@ -274,7 +280,7 @@ export default function ProjectCarousel({
         },
       );
     },
-    [openDetailForProject],
+    [openDetailForProject, onDetailOpen],
   );
 
   // -----------------------------------------------------------------------

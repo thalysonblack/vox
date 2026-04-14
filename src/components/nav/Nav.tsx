@@ -82,11 +82,9 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  // Nav lift transition: on compact change, GSAP flies the ENTIRE nav
-  // (logo + CONNECT) UP fast (synced with the start of the card
-  // choreography), swaps the logo size while hidden above the viewport,
-  // then drops it back down at the new size. useLayoutEffect so the
-  // lift kicks off in the same frame the compact prop changes.
+  // Nav lift: the whole nav slides UP, swaps the logo size while hidden
+  // above the viewport, then drops back DOWN at the new size. Smooth
+  // two-phase timeline synced with the carousel transformation.
   useLayoutEffect(() => {
     if (prevCompactRef.current === compact) {
       setRenderedCompact(compact);
@@ -99,32 +97,21 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
       return;
     }
     gsap.killTweensOf(nav);
-    // The nav lift is synced to the carousel horizontal→vertical
-    // transformation (TIMING.verticalDur). Phase 1 rises across ~60% of
-    // that window so the eye sees the full motion, then fades; Phase 2
-    // drops back at the new size during the remaining window. Total
-    // duration matches verticalDur exactly.
-    const upDur = TIMING.verticalDur * 0.6;
-    const downDur = TIMING.verticalDur * 0.4;
     const tl = gsap.timeline();
+    // Phase 1: rise up and out of frame.
     tl.to(nav, {
-      y: -80,
-      duration: upDur,
-      ease: "power2.out",
+      y: -120,
+      duration: TIMING.verticalDur * 0.42,
+      ease: "power2.inOut",
     });
-    tl.to(
-      nav,
-      { opacity: 0, duration: upDur * 0.35, ease: "power1.in" },
-      `-=${upDur * 0.35}`,
-    );
-    // Swap the rendered size (logo width) while hidden above the viewport.
+    // Swap the rendered logo size while hidden above the viewport.
     tl.call(() => setRenderedCompact(compact));
     // Phase 2: drop back down at the new size.
-    tl.fromTo(
-      nav,
-      { y: -80, opacity: 0 },
-      { y: 0, opacity: 1, duration: downDur, ease: "power2.out" },
-    );
+    tl.to(nav, {
+      y: 0,
+      duration: TIMING.verticalDur * 0.5,
+      ease: "power2.out",
+    });
   }, [compact]);
 
   useEffect(() => {

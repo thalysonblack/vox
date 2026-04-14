@@ -375,7 +375,14 @@ export function createChoreographyTimeline(
             titleRow.style.paddingLeft = "";
             titleRow.style.paddingRight = "";
           }
-          gsap.set(c.el, { x: 0, y: 0, scale: 1, rotation: 0 });
+          gsap.set(c.el, {
+            x: 0,
+            y: 0,
+            scale: 1,
+            rotation: 0,
+            opacity: 1,
+            zIndex: "",
+          });
         });
         gsap.set(nonCanonicalEls, { opacity: 1, pointerEvents: "auto" });
         strip.style.overflow = prevOverflow;
@@ -507,6 +514,7 @@ export function createReverseTimeline(ctx: ReverseContext): gsap.core.Timeline {
         y: 0,
         scale: 1,
         rotation: 0,
+        opacity: 1,
         duration: TIMING.reverseDur,
         ease: "expo.out",
       },

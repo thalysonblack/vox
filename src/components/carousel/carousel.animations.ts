@@ -159,8 +159,13 @@ export function enterVerticalDirectly(args: EnterVerticalDirectlyArgs) {
     );
     const targetY = vState.clickedCy + yOffset;
 
+    // NOTE: the innerDivs were translated by -savedScrollLeft a few lines
+    // above (before we rebuilt strip.scrollLeft = 0). Card `r` rects were
+    // captured BEFORE that shift, so curCx reflects the pre-shift position.
+    // We add savedScrollLeft to compensate so the card ends up exactly at
+    // p4X after both transforms (innerDivs + card) compose.
     gsap.set(el, {
-      x: p4X - curCx,
+      x: p4X - curCx + savedScrollLeft,
       y: targetY - curCy,
       scale,
       zIndex: i === vState.safeClickedIdx ? 100 : 80 - absSlot,
@@ -440,8 +445,8 @@ export function createChoreographyTimeline(
 
     // Y + scale
     tl.to(el, { y: pBCy - curCy, scale: pBScaleI, rotation: 0, duration: TIMING.verticalDur }, 0);
-    // X slides left
-    tl.to(el, { x: p4X - curCx, duration: TIMING.horizontalDur }, TIMING.horizontalStart);
+    // X slides left — compensate for the innerDivs shift applied above.
+    tl.to(el, { x: p4X - curCx + savedScrollLeft, duration: TIMING.horizontalDur }, TIMING.horizontalStart);
   });
 
   return tl;

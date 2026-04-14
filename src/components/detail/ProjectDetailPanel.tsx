@@ -386,6 +386,7 @@ export default function ProjectDetailPanel({
         type="button"
         onClick={onClose}
         aria-label="Fechar detalhes do projeto"
+        data-panel-close=""
         className="absolute top-[4px] z-[35] hidden h-[22px] w-[22px] items-center justify-center rounded-[3px] bg-[#e3e3e3] text-[#2d2f2f] transition-colors hover:bg-[#d4d4d4] md:left-[-8px] md:flex md:-translate-x-full"
       >
         <svg width={5} height={7} viewBox="0 0 5 7" fill="currentColor">

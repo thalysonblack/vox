@@ -215,27 +215,35 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
     gap = PHASE_B.gap;
   }
 
-  // --- Compute dynamic columnX: center card in the available whitespace ---
+  // --- Compute dynamic columnX: the vertical carousel lives between the
+  //     VOX logo (left) and the close button (right), centered in that
+  //     whitespace on ANY device regardless of panel width.
   const logoEl = document.querySelector<HTMLElement>("[data-vox-logo]");
   const logoRight = logoEl
     ? logoEl.getBoundingClientRect().right - vpRect.left
     : 80;
-  // Panel at md: 22vw, capped at 440px on xl. Match the CSS exactly.
-  const rawPanelLeft =
-    fullWinW >= 1280 ? Math.min(fullWinW * 0.22, 440) : fullWinW * 0.22;
-  const panelLeft = fullWinW >= 768 ? rawPanelLeft : fullWinW;
-  const SAFETY_MARGIN = 48; // visual breathing room between card and panel edge
-  const rightBoundary = panelLeft - SAFETY_MARGIN - vpRect.left;
+  // Find the actual close button in the DOM (it's inside the detail panel
+  // positioned at left-[-8px] translate-x-full from the panel edge on md+).
+  const closeBtnEl = document.querySelector<HTMLElement>(
+    "[data-panel-close]",
+  );
+  let closeBtnLeft: number;
+  if (closeBtnEl) {
+    closeBtnLeft = closeBtnEl.getBoundingClientRect().left - vpRect.left;
+  } else {
+    // Fallback: CSS places panel at 22vw (xl capped at 440), button is
+    // 30px to the left of that edge.
+    const rawPanelLeft =
+      fullWinW >= 1280 ? Math.min(fullWinW * 0.22, 440) : fullWinW * 0.22;
+    const panelLeftFallback = fullWinW >= 768 ? rawPanelLeft : fullWinW;
+    closeBtnLeft = panelLeftFallback - 30 - vpRect.left;
+  }
 
-  // Desktop: fit the visible center card to ~85% of the available width
-  // (between logo and panel's left edge, with a 48px safety margin so it
-  // never touches the detail panel). Only shrinks — never grows past
-  // PHASE_B.centerScale.
+  // Shrink the three tier scales so the center card takes ~80% of the
+  // available whitespace — leaves ~10% margin on each side.
   if (!isSmall) {
-    const availLeft = logoRight;
-    const availRight = rightBoundary;
-    const availWidth = Math.max(0, availRight - availLeft);
-    const targetVisibleCenterW = availWidth * 0.85;
+    const availWidth = Math.max(0, closeBtnLeft - logoRight);
+    const targetVisibleCenterW = availWidth * 0.8;
     const naturalCenterW = cardW * centerScale;
     if (naturalCenterW > targetVisibleCenterW && naturalCenterW > 0) {
       const shrink = targetVisibleCenterW / naturalCenterW;
@@ -252,11 +260,9 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
     // Mobile: center card horizontally (full-screen, no panel).
     dynamicColumnX = (fullWinW - pBCenterCw) / 2;
   } else {
-    // Desktop: center the (possibly shrunk) card in the actual visible
-    // whitespace between the logo and the panel's left edge. The safety
-    // margin is used for SIZING (shrink), not for the centering midpoint —
-    // otherwise the card drifts too far left of the true center.
-    const availMid = (logoRight + panelLeft - vpRect.left) / 2;
+    // Desktop: card center lives at the midpoint between the logo and
+    // the close button — the true center of the visible whitespace.
+    const availMid = (logoRight + closeBtnLeft) / 2;
     dynamicColumnX = availMid - pBCenterCw / 2;
   }
 

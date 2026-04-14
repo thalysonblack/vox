@@ -1,6 +1,17 @@
-export default function Footer() {
+interface FooterProps {
+  introDone?: boolean;
+}
+
+export default function Footer({ introDone = true }: FooterProps) {
   return (
-    <footer className="pt-4">
+    <footer
+      className="pt-4"
+      style={
+        introDone
+          ? { transition: "opacity 300ms ease-out", opacity: 1 }
+          : { opacity: 0 }
+      }
+    >
       <hr className="mb-6 border-t border-black/[0.08]" />
 
       <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-end md:gap-0">

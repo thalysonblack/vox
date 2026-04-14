@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Nav from "@/components/nav/Nav";
 import Footer from "@/components/footer/Footer";
 import ProjectCarousel from "@/components/carousel/ProjectCarousel";
+import IntroCurtain from "@/components/intro/IntroCurtain";
+import { introState } from "@/components/intro/introState";
 import type { ProjectListItem } from "@/types/project";
 
 interface HomeLayoutProps {
@@ -14,7 +16,36 @@ interface HomeLayoutProps {
 export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  // Deep link to /project/[slug] or already-played → skip intro.
+  const shouldSkipIntro = Boolean(initialSlug) || introState.hasPlayed;
+  const [introDone, setIntroDone] = useState(shouldSkipIntro);
+  const carouselReadyResolverRef = useRef<(() => void) | null>(null);
   const closeHandlerRef = useRef<() => void>(() => {});
+
+  const readyPromiseRef = useRef<Promise<unknown> | null>(null);
+  if (readyPromiseRef.current === null && !shouldSkipIntro) {
+    const carouselReady = new Promise<void>((resolve) => {
+      carouselReadyResolverRef.current = resolve;
+    });
+    const fontsReady =
+      typeof document !== "undefined" && document.fonts
+        ? document.fonts.ready.then(() => undefined)
+        : Promise.resolve();
+    const criticalImages = projects
+      .slice(0, 5)
+      .map((p) => p.image)
+      .filter((url): url is string => Boolean(url))
+      .map((url) => {
+        const img = new Image();
+        img.src = url;
+        return img.decode().catch(() => null);
+      });
+    readyPromiseRef.current = Promise.all([
+      fontsReady,
+      carouselReady,
+      ...criticalImages,
+    ]);
+  }
 
   useEffect(() => {
     const update = () => setIsMobile(window.innerWidth < 768);
@@ -31,8 +62,28 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
     }
   }, []);
 
+  const handleCarouselReady = useCallback(() => {
+    carouselReadyResolverRef.current?.();
+    carouselReadyResolverRef.current = null;
+  }, []);
+
+  const handleIntroHandoff = useCallback(() => {
+    setIntroDone(true);
+  }, []);
+
+  const handleIntroComplete = useCallback(() => {
+    introState.hasPlayed = true;
+  }, []);
+
   return (
     <div className="relative h-[100dvh] touch-none overflow-hidden bg-[#fdfdfc]">
+      {!introDone && readyPromiseRef.current && (
+        <IntroCurtain
+          readyPromise={readyPromiseRef.current}
+          onHandoff={handleIntroHandoff}
+          onComplete={handleIntroComplete}
+        />
+      )}
       {/* Nav sits ABOVE the detail panel (z > panel's 201) on mobile so the
           logo + CONNECT stay visible when a project is open.
           Wrapper is pointer-events-none — only the logo/CONNECT buttons
@@ -41,13 +92,19 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
           Mobile uses mix-blend-difference so the nav inverts over any
           content behind it (always legible regardless of card color). */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[210] px-3 pt-3 pb-3">
-        <Nav compact={detailOpen && !isMobile} onLogoClick={goHome} />
+        <Nav
+          compact={detailOpen && !isMobile}
+          onLogoClick={goHome}
+          introDone={introDone}
+        />
       </div>
 
       <div className="absolute inset-0 flex flex-col">
         <ProjectCarousel
           projects={projects}
           initialSlug={initialSlug}
+          introDone={introDone}
+          onCarouselReady={handleCarouselReady}
           onDetailOpen={() => setDetailOpen(true)}
           onDetailClose={() => setDetailOpen(false)}
           onRegisterCloseHandler={(fn) => {
@@ -63,7 +120,7 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
         }`}
       >
         <div className="pointer-events-auto">
-          <Footer />
+          <Footer introDone={introDone} />
         </div>
       </div>
     </div>

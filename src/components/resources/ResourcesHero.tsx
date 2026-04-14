@@ -12,7 +12,7 @@ export default function ResourcesHero() {
         </h1>
         <p className="max-w-[640px] text-[15px] font-medium leading-[1.45] tracking-[-0.24px] text-black/70">
           Explore our central library of links, tools, templates, and practical guides.
-          Curated for quick access with the same clear structure used across Vox.
+          Curated for quick access with the same clear structure used across Good Taste.
         </p>
       </div>
 

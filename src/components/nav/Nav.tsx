@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import { TIMING } from "@/components/carousel/carousel.constants";
 
 interface NavProps {
   compact?: boolean;
@@ -42,9 +43,14 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
   );
   const [logoDark, setLogoDark] = useState(false);
   const [connectDark, setConnectDark] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
   const logoRef = useRef<HTMLButtonElement>(null);
+  const logoImgWrapRef = useRef<HTMLSpanElement>(null);
   const connectBtnRef = useRef<HTMLButtonElement>(null);
+  const prevCompactRef = useRef(compact);
+  const [renderedCompact, setRenderedCompact] = useState(compact);
 
   // When the CONNECT panel opens, probe what's behind it and pick a
   // text color for max contrast.
@@ -67,6 +73,60 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
   // nav sits over the vertical carousel cards) and flip colors for contrast.
   // mix-blend-difference doesn't work across z-indexed stacking contexts,
   // so we detect luminance at runtime instead. Runs only on mobile.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // Nav lift transition: on compact change, GSAP flies the ENTIRE nav
+  // (logo + CONNECT) UP fast (synced with the start of the card
+  // choreography), swaps the logo size while hidden above the viewport,
+  // then drops it back down at the new size. useLayoutEffect so the
+  // lift kicks off in the same frame the compact prop changes.
+  useLayoutEffect(() => {
+    if (prevCompactRef.current === compact) {
+      setRenderedCompact(compact);
+      return;
+    }
+    prevCompactRef.current = compact;
+    const nav = navRef.current;
+    if (!nav) {
+      setRenderedCompact(compact);
+      return;
+    }
+    gsap.killTweensOf(nav);
+    // The nav lift is synced to the carousel horizontal→vertical
+    // transformation (TIMING.verticalDur). Phase 1 rises across ~60% of
+    // that window so the eye sees the full motion, then fades; Phase 2
+    // drops back at the new size during the remaining window. Total
+    // duration matches verticalDur exactly.
+    const upDur = TIMING.verticalDur * 0.6;
+    const downDur = TIMING.verticalDur * 0.4;
+    const tl = gsap.timeline();
+    tl.to(nav, {
+      y: -80,
+      duration: upDur,
+      ease: "power2.out",
+    });
+    tl.to(
+      nav,
+      { opacity: 0, duration: upDur * 0.35, ease: "power1.in" },
+      `-=${upDur * 0.35}`,
+    );
+    // Swap the rendered size (logo width) while hidden above the viewport.
+    tl.call(() => setRenderedCompact(compact));
+    // Phase 2: drop back down at the new size.
+    tl.fromTo(
+      nav,
+      { y: -80, opacity: 0 },
+      { y: 0, opacity: 1, duration: downDur, ease: "power2.out" },
+    );
+  }, [compact]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.innerWidth >= 768) return;
@@ -95,7 +155,8 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
 
   return (
     <nav
-      className="relative z-[100] flex shrink-0 items-start gap-6"
+      ref={navRef}
+      className="relative z-[100] flex shrink-0 items-start gap-6 will-change-transform"
       aria-label="Menu principal"
     >
       <button
@@ -106,18 +167,25 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
         data-vox-logo
         className="pointer-events-auto shrink-0 origin-top-left cursor-pointer"
         style={{
-          transform: compact ? "scale(0.72)" : "scale(1)",
           filter: logoDark ? "invert(1)" : "none",
-          transition: "transform 500ms ease-out, filter 200ms ease-out",
+          transition: "filter 200ms ease-out",
         }}
       >
-        <Image
-          src="/assets/vox-logo.svg"
-          alt="VOX"
-          width={69}
-          height={16}
-          priority
-        />
+        <span ref={logoImgWrapRef} className="block will-change-transform">
+          {/* Size the SVG via width so the browser re-rasterizes at the
+              target resolution — transform:scale would rasterize once and
+              then blow up the bitmap, which is what was pixelating the
+              wordmark. Vector crisp at any size. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/assets/vox-logo.svg"
+            alt="Good Taste"
+            width={renderedCompact ? 76 : isDesktop ? 353 : 105}
+            height={renderedCompact ? 11 : isDesktop ? 54 : 16}
+            draggable={false}
+            style={{ display: "block" }}
+          />
+        </span>
       </button>
 
       <div className="w-[346px] shrink-0 max-xl:hidden" />

@@ -216,11 +216,11 @@ export function buildVerticalState(ctx: ChoreographyContext): VerticalState {
   }
 
   // --- Compute dynamic columnX: the vertical carousel lives between the
-  //     VOX logo (left) and the close button (right), centered in that
+  //     Good Taste logo (left) and the close button (right), centered in that
   //     whitespace on ANY device.
   // Logo goes compact (scale 0.72) when the panel opens, so its right
-  // edge is at 12 + 69*0.72 ≈ 62. Add a tiny gap.
-  const logoRight = 12 + 69 * 0.72 + 4; // ≈ 66
+  // edge is at 12 + 105*0.72 ≈ 88. Add a tiny gap.
+  const logoRight = 12 + 105 * 0.72 + 4; // ≈ 92
   const rawPanelLeft =
     fullWinW >= 1280 ? Math.min(fullWinW * 0.22, 440) : fullWinW * 0.22;
   const panelLeft = fullWinW >= 768 ? rawPanelLeft : fullWinW;

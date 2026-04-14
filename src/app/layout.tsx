@@ -13,8 +13,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vox",
-  description: "Vox",
+  title: "Good Taste",
+  description:
+    "Good Taste — design portfolio. Crafted projects in branding, product, and web.",
+  openGraph: {
+    title: "Good Taste",
+    description:
+      "Good Taste — design portfolio. Crafted projects in branding, product, and web.",
+    siteName: "Good Taste",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Good Taste",
+    description:
+      "Good Taste — design portfolio. Crafted projects in branding, product, and web.",
+  },
 };
 
 export default function RootLayout({

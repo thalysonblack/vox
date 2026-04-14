@@ -21,7 +21,7 @@ export default function GalleryClient({ projects }: GalleryClientProps) {
             href="/"
             className="text-[12px] font-semibold uppercase tracking-[0.08em] text-white/80 hover:text-white"
           >
-            ← VOX
+            ← Good Taste
           </a>
         </div>
         <div className="pointer-events-auto">

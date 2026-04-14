@@ -7,6 +7,7 @@ import { EASE, TIMING } from "@/components/carousel/carousel.constants";
 interface NavProps {
   compact?: boolean;
   onLogoClick?: () => void;
+  introDone?: boolean;
 }
 
 // Parse any CSS color string into an [r, g, b] tuple via the browser's
@@ -36,7 +37,11 @@ function bgLuminance(el: Element | null): number {
   return 1; // assume white
 }
 
-export default function Nav({ compact = false, onLogoClick }: NavProps) {
+export default function Nav({
+  compact = false,
+  onLogoClick,
+  introDone = true,
+}: NavProps) {
   const [contactOpen, setContactOpen] = useState(false);
   const [panelTextColor, setPanelTextColor] = useState<"black" | "white">(
     "black",
@@ -162,6 +167,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
         style={{
           filter: logoDark ? "invert(1)" : "none",
           transition: "filter 200ms ease-out",
+          ...(introDone ? {} : { opacity: 0, pointerEvents: "none" as const }),
         }}
       >
         <span ref={logoImgWrapRef} className="block will-change-transform">
@@ -187,6 +193,7 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
         className={`flex flex-1 items-start justify-end gap-0 transition-opacity duration-300 ease-out md:justify-between ${
           compact ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
+        style={introDone ? undefined : { opacity: 0, pointerEvents: "none" }}
       >
         <div className="hidden space-y-3 md:block">
           <p className="max-w-[193px] text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.56px] text-black">

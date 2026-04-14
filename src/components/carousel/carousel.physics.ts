@@ -98,12 +98,16 @@ export function createTickHandler(ctx: TickContext): () => void {
           titleRow.style.paddingLeft = isActive ? ACTIVE_CARD_STYLE.paddingX : "";
           titleRow.style.paddingRight = isActive ? ACTIVE_CARD_STYLE.paddingX : "";
         }
-        // Update z-index per-frame so the card closest to center is always
-        // rendered on top — prevents visual overlap during click-to-center.
+        // Update z-index + opacity per-frame so the card closest to center
+        // is always rendered on top AND at full opacity. Cards further out
+        // fade softly. Eliminates the visual "overlap" during click-to-center
+        // by creating a clear depth hierarchy.
+        const opacity = Math.max(0.25, 1 - absOff * 0.22);
         gsap.set(c.el, {
           y: y - c.curCy,
           scale,
-          zIndex: Math.round(100 - absOff * 10),
+          zIndex: Math.round(1000 - absOff * 100),
+          opacity,
         });
       }
       return;

@@ -211,8 +211,8 @@ export default function Nav({
           <img
             src="/assets/vox-logo.svg"
             alt="Good Taste"
-            width={renderedCompact ? 76 : isDesktop ? 353 : 117}
-            height={renderedCompact ? 11 : isDesktop ? 54 : 18}
+            width={renderedCompact ? 61 : isDesktop ? 282 : 94}
+            height={renderedCompact ? 9 : isDesktop ? 43 : 14}
             draggable={false}
             style={{ display: "block" }}
           />

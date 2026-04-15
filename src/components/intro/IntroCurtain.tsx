@@ -29,7 +29,7 @@ export default function IntroCurtain({
 }: IntroCurtainProps) {
   const [phase, setPhase] = useState<Phase>("displaying");
   const curtainRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<HTMLImageElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
 
   // Detect reduced motion once via lazy useState (SSR-safe, linter-happy).
   const [prefersReducedMotion] = useState(
@@ -141,33 +141,25 @@ export default function IntroCurtain({
       }}
       aria-hidden="true"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      {/* Render the Good Taste wordmark as a white mask-image. This
+          bypasses SVG filter quirks entirely: the div is a solid white
+          rectangle clipped to the shape of the SVG. */}
+      <div
         ref={logoRef}
-        src="/assets/vox-logo.svg"
-        alt=""
-        width={INTRO_LOGO_LARGE.widthPx}
-        height={INTRO_LOGO_LARGE.heightPx}
-        className="intro-logo"
         style={{
-          display: "block",
-          opacity: 0,
-          animation: `intro-logo-fade-in ${INTRO_TIMING.logoFadeInDur}s ${INTRO_TIMING.logoFadeInDelay}s ${INTRO_EASE.logoFade} forwards`,
+          width: INTRO_LOGO_LARGE.widthPx,
+          height: INTRO_LOGO_LARGE.heightPx,
+          backgroundColor: "#ffffff",
+          WebkitMaskImage: "url(/assets/vox-logo.svg)",
+          maskImage: "url(/assets/vox-logo.svg)",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
         }}
       />
-      <style>{`
-        .intro-logo {
-          /* The Good Taste SVG is solid black — brightness(0) forces all
-             pixels to pure black, then invert(1) flips them to pure white.
-             More robust than invert(1) alone, which can be affected by
-             pre-existing non-black pixels or antialiasing. */
-          filter: brightness(0) invert(1);
-        }
-        @keyframes intro-logo-fade-in {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0);   }
-        }
-      `}</style>
     </div>
   );
 }

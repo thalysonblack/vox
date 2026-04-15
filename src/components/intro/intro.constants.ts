@@ -3,9 +3,9 @@
  * the carousel choreography (expo.out, ~0.7-0.9s phases).
  */
 export const INTRO_TIMING = {
-  // Loading gate
-  minHoldMs: 1000,
-  maxHoldMs: 2500,
+  // Loading gate — temporarily bumped to 3s min for debugging visibility.
+  minHoldMs: 3000,
+  maxHoldMs: 5000,
 
   // Phase durations (seconds, for GSAP)
   logoFadeInDur: 0.4,

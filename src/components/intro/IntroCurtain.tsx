@@ -158,8 +158,15 @@ export default function IntroCurtain({
           maskPosition: "center",
           WebkitMaskSize: "contain",
           maskSize: "contain",
+          animation: `intro-logo-fade-in ${INTRO_TIMING.logoFadeInDur}s ${INTRO_TIMING.logoFadeInDelay}s ${INTRO_EASE.logoFade} both`,
         }}
       />
+      <style>{`
+        @keyframes intro-logo-fade-in {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0);    }
+        }
+      `}</style>
     </div>
   );
 }

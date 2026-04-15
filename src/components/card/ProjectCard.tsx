@@ -28,7 +28,14 @@ export default function ProjectCard({ project, isFirst = false }: ProjectCardPro
         maxHeight: "var(--pc-h, 601px)",
       }}
     >
-      <div className="flex items-center justify-between rounded-[4px] px-0 py-[8px] transition-all duration-200 group-hover:-translate-y-[8px] group-hover:bg-[rgba(31,43,57,0.03)] group-hover:px-[8px]">
+      <div
+        className="project-card-title-row flex items-center justify-between rounded-[4px] px-0 py-[8px] group-hover:bg-[rgba(31,43,57,0.03)] group-hover:px-[8px]"
+        style={{
+          transition:
+            "transform 200ms ease-out, background-color 200ms ease-out, padding 200ms ease-out",
+          willChange: "transform",
+        }}
+      >
         <span
           className="text-[14px] font-semibold tracking-[-0.56px] text-black"
           style={{

@@ -57,6 +57,13 @@
   outline: none;
 }
 
+/* Card hover lift — use transform instead of Tailwind v4's new
+   `translate` CSS property so GSAP's clearProps:"transform" doesn't
+   collide with the hover interpolation in the production bundle. */
+.group:hover .project-card-title-row {
+  transform: translateY(-8px);
+}
+
 /* Hide scrollbar but keep scrolling */
 .scrollbar-hide {
   -ms-overflow-style: none;

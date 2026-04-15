@@ -10,13 +10,16 @@ export const INTRO_TIMING = {
   // Phase durations (seconds, for GSAP)
   logoFadeInDur: 0.4,
   logoFadeInDelay: 0.1,
-  curtainLiftDur: 0.8,
+  // 1.1s gives the curtain weight — long enough to feel the mass lifting.
+  curtainLiftDur: 1.1,
   logoTravelDur: 0.7,
   logoTravelDelay: 0.10, // after curtain lift starts
   cardStaggerDur: 0.7,
   cardStaggerGap: 0.04,
-  cardStaggerDelayFromLift: 0.55,
-  handoffAtFromLift: 0.80,
+  cardStaggerDelayFromLift: 0.75,
+  // Fires late in the lift (curtainLiftDur 1.1 × 0.85 = 0.935) so the
+  // curtain is nearly off-screen when the nav logo takes over.
+  handoffAtFromLift: 0.95,
   footerFadeDur: 0.3,
 
   // Reduced motion collapse (milliseconds — no GSAP, pure CSS)
@@ -27,7 +30,9 @@ export const INTRO_TIMING = {
 
 export const INTRO_EASE = {
   logoFade: "power2.out",
-  curtainLift: "expo.out",
+  // power3.in = slow start (fabric weight / tension), accelerates hard.
+  // Feels like a real curtain being pulled up by a motor.
+  curtainLift: "power3.in",
   logoTravel: "power3.inOut",
   cardEntry: "expo.out",
 } as const;

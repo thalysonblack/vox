@@ -49,11 +49,22 @@ export function createIntroTimeline(ctx: IntroTimelineCtx): {
 } {
   const tl = gsap.timeline({ onComplete: ctx.onComplete });
 
-  // Phase 1: curtain slides off the top of the viewport.
+  // Phase 1: curtain rises off the top of the viewport with a physical
+  // "weight + gravity" feel.
+  //   - Explicit pixel value (not -100%) because percentage transforms
+  //     on fixed-position elements misbehave in some production bundles
+  //     and the user reported the lift looked instantaneous.
+  //   - `power3.in` easing: starts slow (fabric tension + weight
+  //     resistance), accelerates as gravity inverts, finishes fast —
+  //     reads as a real curtain being pulled up by a motor/rope.
+  //   - Overshoot by 60px so the edge of the curtain clears the
+  //     viewport even on devices where visual viewport != layout
+  //     viewport (mobile browser chrome).
+  const viewportH = typeof window !== "undefined" ? window.innerHeight : 900;
   tl.to(
     ctx.curtainEl,
     {
-      y: "-100%",
+      y: -(viewportH + 60),
       duration: INTRO_TIMING.curtainLiftDur,
       ease: INTRO_EASE.curtainLift,
     },

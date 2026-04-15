@@ -249,16 +249,17 @@ export default function Nav({
           className="pointer-events-auto relative"
           onMouseLeave={() => setContactOpen(false)}
         >
-          {/* CONNECT button — color flips to white over dark backgrounds
-              via the luminance probe (mobile uses this because the nav
-              wrapper's z-[210] stacking context blocks mix-blend-mode
-              from blending through). */}
+          {/* CONNECT button — on mobile uses mix-blend-mode: difference
+              against a forced-white color so it inverts against whatever
+              is behind. On desktop (≥768) falls back to the luminance
+              probe flipping between black/white. */}
           <button
             ref={connectBtnRef}
             onClick={() => setContactOpen(!contactOpen)}
             className="relative z-[102] flex cursor-pointer items-center gap-2"
             style={{
-              color: connectDark ? "white" : "black",
+              color: isDesktop ? (connectDark ? "white" : "black") : "#ffffff",
+              mixBlendMode: isDesktop ? "normal" : "difference",
               transition: "color 200ms ease-out",
             }}
           >

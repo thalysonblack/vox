@@ -15,7 +15,7 @@
      mode computes its own scale from these widths and the viewport's
      available safe zone, so we can keep the horizontal big without the
      vertical overflowing into the detail panel. */
-  --pc-w: clamp(280px, 31vw, 695px);
+  --pc-w: clamp(280px, 26vw, 580px);
   --pc-h: calc(var(--pc-w) * 1.348);
 }
 @media (max-width: 767px) {
@@ -33,13 +33,13 @@
    and more peek into view, matching the editorial grid feel. */
 @media (min-width: 1920px) {
   :root {
-    --pc-w: clamp(366px, 19vw, 451px);
+    --pc-w: clamp(458px, 24vw, 564px);
   }
 }
 /* Cinema / 4K desktops (≥ 2560px). Bigger canvas = bigger cards. */
 @media (min-width: 2560px) {
   :root {
-    --pc-w: clamp(451px, 20vw, 578px);
+    --pc-w: clamp(564px, 25vw, 720px);
   }
 }
 @layer base {

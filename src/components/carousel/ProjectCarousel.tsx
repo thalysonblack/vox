@@ -804,10 +804,19 @@ export default function ProjectCarousel({
   // Render
   // -----------------------------------------------------------------------
 
+  // Mobile uses its own vertical-column layout (enterVerticalDirectly),
+  // so vAlign/bottomGapPx only apply to desktop horizontal mode. Check
+  // via matchMedia at render time (render-safe, SSR returns false and
+  // hydration matches the first client render since React hydrates
+  // after the page is loaded in the browser).
+  const isMobileViewport =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 767px)").matches;
+  const effectiveVAlign = isMobileViewport ? "Center" : config.vAlign;
   const vAlignClass =
-    config.vAlign === "Center"
+    effectiveVAlign === "Center"
       ? "items-center"
-      : config.vAlign === "Top"
+      : effectiveVAlign === "Top"
         ? "items-start"
         : "items-end";
 
@@ -823,7 +832,14 @@ export default function ProjectCarousel({
 
   return (
     <>
-      <div className={`flex min-h-0 flex-1 justify-center ${vAlignClass}`}>
+      <div
+        className={`flex min-h-0 flex-1 justify-center ${vAlignClass}`}
+        style={
+          effectiveVAlign === "Bottom"
+            ? { paddingBottom: config.bottomGapPx }
+            : undefined
+        }
+      >
         <section
           ref={stripRef}
           data-carousel-strip=""

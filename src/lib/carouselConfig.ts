@@ -27,7 +27,10 @@ export const carouselConfig = {
   /** Queda de escala/opacidade dos cards longe do centro (2.5) */
   falloff: 2.5,
   /** Alinhamento vertical: "Center" | "Top" | "Bottom" */
-  vAlign: "Center" as const,
+  vAlign: "Bottom" as const,
+  /** Espaço entre a base dos cards e a borda inferior do viewport
+   *  quando vAlign = "Bottom". Controla a "linha" editorial. */
+  bottomGapPx: 128,
 } as const;
 
 export type CarouselConfig = typeof carouselConfig;

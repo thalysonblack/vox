@@ -20,17 +20,25 @@ export default async function RequestPage() {
     .catch(() => null);
 
   return (
-    <div className="min-h-screen bg-[#fdfdfc]">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col px-3 py-3">
+    <div className="relative min-h-[100dvh] bg-[#fdfdfc]">
+      {/* Nav — full-bleed, same padding as home so the logo sits in the
+          same spot regardless of page. */}
+      <div className="px-3 pt-3">
         <Nav settings={settings ?? undefined} />
+      </div>
 
-        <main className="pt-16 pb-20 md:pt-24 md:pb-28">
+      {/* Form content — inner max-width for comfortable reading line
+          length, not tied to the nav container width. */}
+      <main className="px-3 pt-16 pb-20 md:pt-24 md:pb-28">
+        <div className="mx-auto w-full max-w-[1200px]">
           <RequestHero />
           <div className="mt-16 md:mt-24">
             <RequestForm />
           </div>
-        </main>
+        </div>
+      </main>
 
+      <div className="px-3 pb-3">
         <Footer settings={settings ?? undefined} />
       </div>
     </div>

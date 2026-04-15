@@ -62,18 +62,21 @@
   }
 }
 
-/* Focus-visible for keyboard navigation — wrapped in @layer base so
-   individual components can opt out via Tailwind's focus-visible:outline-none
-   on fields where a bottom-border focus style is the intended affordance. */
-@layer base {
-  :focus-visible {
-    outline: 2px solid #2d2f2f;
-    outline-offset: 2px;
-    border-radius: 2px;
-  }
-  :focus:not(:focus-visible) {
-    outline: none;
-  }
+/* Focus-visible for keyboard navigation. Excludes text inputs and
+   textareas — those get their own focus style at the component level
+   (bottom-border only) so the default rectangle outline doesn't wrap
+   a field that visually looks like a line. */
+:focus-visible:not(input):not(textarea) {
+  outline: 2px solid #2d2f2f;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+input:focus,
+textarea:focus {
+  outline: none;
 }
 
 /* Card hover lift — use transform instead of Tailwind v4's new

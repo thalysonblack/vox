@@ -15,11 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Goodtaste®",
   description:
-    "Goodtaste® — design portfolio. Crafted projects in branding, product, and web.",
+    "Goodtaste® — Studio. Crafted projects in branding, product, and web.",
   openGraph: {
     title: "Goodtaste®",
     description:
-      "Goodtaste® — design portfolio. Crafted projects in branding, product, and web.",
+      "Goodtaste® — Studio. Crafted projects in branding, product, and web.",
     siteName: "Goodtaste®",
     type: "website",
   },
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Goodtaste®",
     description:
-      "Goodtaste® — design portfolio. Crafted projects in branding, product, and web.",
+      "Goodtaste® — Studio. Crafted projects in branding, product, and web.",
   },
 };
 

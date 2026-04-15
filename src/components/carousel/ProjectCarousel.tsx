@@ -33,6 +33,10 @@ interface ProjectCarouselProps {
   onDetailOpen?: () => void;
   onDetailClose?: () => void;
   onRegisterCloseHandler?: (handler: () => void) => void;
+  /** Fired once the strip has laid out with Sanity data present. */
+  onCarouselReady?: () => void;
+  /** When false, cards render hidden so the intro can stagger them in. */
+  introDone?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -45,6 +49,8 @@ export default function ProjectCarousel({
   onDetailOpen,
   onDetailClose,
   onRegisterCloseHandler,
+  onCarouselReady,
+  introDone = true,
 }: ProjectCarouselProps) {
   const router = useRouter();
 
@@ -89,6 +95,20 @@ export default function ProjectCarousel({
   const wheelAccumRef = useRef(0);
   const vStateRef = useRef<VerticalState | null>(null);
   const isMobileRef = useRef(false);
+
+  // -----------------------------------------------------------------------
+  // Signal carousel ready (one frame after strip mounts with projects)
+  // -----------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!onCarouselReady) return;
+    if (projects.length === 0) return;
+    const strip = stripRef.current;
+    if (!strip) return;
+    // One frame for layout, then signal ready.
+    const id = requestAnimationFrame(() => onCarouselReady());
+    return () => cancelAnimationFrame(id);
+  }, [onCarouselReady, projects.length]);
 
   // -----------------------------------------------------------------------
   // Open detail panel
@@ -313,6 +333,17 @@ export default function ProjectCarousel({
     // runChoreography.
     onDetailClose?.();
 
+    // If the forward choreography is still running (user clicked a card
+    // then immediately closed before the horizontal→vertical transform
+    // finished), fast-forward it to completion so its onComplete
+    // side-effect fires and registers cleanupRef. Without this, the
+    // reverse runs with cleanupRef still null, the DOM/scroll is left
+    // half-transformed, and the next click sees modeRef stuck at
+    // "vertical" — requiring a second click to unstick the state.
+    if (isAnimatingRef.current && animTimelineRef.current) {
+      animTimelineRef.current.progress(1);
+    }
+
     // Mobile: stay in vertical mode, don't reverse to horizontal.
     if (isMobileRef.current) {
       setTimeout(() => setSelectedProject(null), 950);
@@ -373,34 +404,6 @@ export default function ProjectCarousel({
     };
     requestAnimationFrame(kick);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialSlug]);
-
-  // -----------------------------------------------------------------------
-  // Cinematic entrance — stagger cards on first mount (home only)
-  // -----------------------------------------------------------------------
-
-  const hasEnteredRef = useRef(false);
-
-  useEffect(() => {
-    if (initialSlug || hasEnteredRef.current) return;
-    // Skip on mobile — we're in vertical mode already, this would clobber positions.
-    if (typeof window !== "undefined" && window.innerWidth < 768) return;
-    const set1 = set1Ref.current;
-    if (!set1) return;
-    hasEnteredRef.current = true;
-
-    const cards = Array.from(
-      set1.querySelectorAll<HTMLElement>("[data-project-id]"),
-    );
-    if (cards.length === 0) return;
-
-    gsap.from(cards, {
-      x: 60,
-      duration: 0.8,
-      stagger: 0.08,
-      ease: "power3.out",
-      delay: 0.15,
-    });
   }, [initialSlug]);
 
   // -----------------------------------------------------------------------
@@ -692,6 +695,66 @@ export default function ProjectCarousel({
   }, [repeats]);
 
   // -----------------------------------------------------------------------
+  // Intro curtain hand-off: stagger cards in when introDone flips true
+  // -----------------------------------------------------------------------
+
+  const didStaggerInRef = useRef(false);
+  useEffect(() => {
+    if (!introDone) return;
+    if (didStaggerInRef.current) return;
+    const strip = stripRef.current;
+    if (!strip) return;
+
+    // Mobile: cards are already in vertical mode; skip the stagger
+    // because it would clobber their positions. Still mark as done
+    // so a subsequent introDone re-flip doesn't retry.
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      didStaggerInRef.current = true;
+      return;
+    }
+
+    const set1 = set1Ref.current;
+    if (!set1) return;
+    didStaggerInRef.current = true;
+
+    // Cards all have data-project-id on their root div.
+    // Query from set1 to avoid animating the duplicate set2 used for infinite scroll.
+    const cards = Array.from(
+      set1.querySelectorAll<HTMLElement>("[data-project-id]"),
+    );
+    if (cards.length === 0) return;
+
+    const isVertical = modeRef.current === "vertical";
+    let ordered: HTMLElement[];
+    if (isVertical) {
+      // Center-out: middle card first, then zip outward alternating sides.
+      const mid = Math.floor(cards.length / 2);
+      ordered = [cards[mid]];
+      for (let d = 1; d <= Math.max(mid, cards.length - 1 - mid); d++) {
+        if (mid - d >= 0) ordered.push(cards[mid - d]);
+        if (mid + d < cards.length) ordered.push(cards[mid + d]);
+      }
+    } else {
+      // Horizontal: left-to-right (DOM order).
+      ordered = cards;
+    }
+
+    gsap.set(strip, { clearProps: "opacity,transform,pointerEvents" });
+    gsap.fromTo(
+      ordered,
+      { opacity: 0, y: 40 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        ease: "expo.out",
+        stagger: 0.04,
+        clearProps: "opacity,transform",
+      },
+    );
+  }, [introDone]);
+
+  // -----------------------------------------------------------------------
   // Render
   // -----------------------------------------------------------------------
 
@@ -727,6 +790,13 @@ export default function ProjectCarousel({
             ["--card-height" as string]: `${config.cardHeight}px`,
             ["--carousel-gap" as string]: `${config.gap}px`,
             ["--carousel-radius" as string]: `${config.radius}px`,
+            ...(introDone
+              ? null
+              : {
+                  opacity: 0,
+                  transform: "translateY(40px)",
+                  pointerEvents: "none" as const,
+                }),
           }}
         >
           <div

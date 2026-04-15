@@ -316,6 +316,19 @@ export default function ProjectCarousel({
     // animations fight over the same card state refs, leaving the
     // carousel in a wedged half-transformed state.
     if (isAnimatingRef.current) return;
+
+    // CMS-driven click behavior:
+    //  - "locked" → ignore entirely
+    //  - "live"   → open the external URL in a new tab, skip choreography
+    //  - "detail" (default) → normal open-project flow
+    if (project.clickBehavior === "locked") return;
+    if (project.clickBehavior === "live" && project.liveUrl) {
+      if (typeof window !== "undefined") {
+        window.open(project.liveUrl, "_blank", "noopener,noreferrer");
+      }
+      return;
+    }
+
     if (modeRef.current === "vertical") {
       centerProjectInCarousel(project.id);
       openDetailForProject(project);

@@ -6,14 +6,15 @@ import Footer from "@/components/footer/Footer";
 import ProjectCarousel from "@/components/carousel/ProjectCarousel";
 import IntroCurtain from "@/components/intro/IntroCurtain";
 import { introState } from "@/components/intro/introState";
-import type { ProjectListItem } from "@/types/project";
+import type { ProjectListItem, SiteSettings } from "@/types/project";
 
 interface HomeLayoutProps {
   projects: ProjectListItem[];
+  settings: SiteSettings;
   initialSlug?: string;
 }
 
-export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
+export default function HomeLayout({ projects, settings, initialSlug }: HomeLayoutProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   // Deep link to /project/[slug] or already-played → skip intro.
@@ -103,6 +104,7 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
           compact={detailOpen && !isMobile}
           onLogoClick={goHome}
           introDone={introDone}
+          settings={settings}
         />
       </div>
 
@@ -127,7 +129,7 @@ export default function HomeLayout({ projects, initialSlug }: HomeLayoutProps) {
         }`}
       >
         <div className="pointer-events-auto">
-          <Footer introDone={introDone} />
+          <Footer introDone={introDone} settings={settings} />
         </div>
       </div>
     </div>

@@ -1,10 +1,13 @@
 import { defineField, defineType } from "sanity";
+import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list";
 
 export const projectSchema = defineType({
   name: "project",
   title: "Project",
   type: "document",
+  orderings: [orderRankOrdering],
   fields: [
+    orderRankField({ type: "project" }),
     defineField({
       name: "name",
       title: "Name",
@@ -19,11 +22,29 @@ export const projectSchema = defineType({
       validation: (r) => r.required(),
     }),
     defineField({
-      name: "order",
-      title: "Order",
-      type: "number",
-      description: "Controls display position in carousel (ascending). Use 10, 20, 30... to leave room.",
+      name: "clickBehavior",
+      title: "Click behavior",
+      type: "string",
+      description:
+        "What happens when someone clicks this project card.",
+      options: {
+        list: [
+          { title: "Open project detail page", value: "detail" },
+          { title: "Open live site (external URL)", value: "live" },
+          { title: "Disabled / locked (no click)", value: "locked" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "detail",
       validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "liveUrl",
+      title: "Live site URL",
+      description:
+        'Only used when Click behavior is "Open live site". Full URL (https://...).',
+      type: "url",
+      hidden: ({ parent }) => parent?.clickBehavior !== "live",
     }),
     defineField({
       name: "image",
@@ -243,14 +264,10 @@ export const projectSchema = defineType({
       validation: (r) => r.max(4),
     }),
     defineField({
-      name: "liveUrl",
-      title: "Live Website URL",
-      type: "url",
-    }),
-    defineField({
       name: "externalUrl",
       title: "External URL",
-      description: "Behance, Dribbble, or other external links",
+      description:
+        "Shown inside the project detail page (Behance, Dribbble, etc.). Not the same as the live-site URL used for click behavior.",
       type: "url",
     }),
   ],

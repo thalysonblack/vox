@@ -45,8 +45,32 @@ export interface ProjectListItem {
   id: string;
   name: string;
   image: string;
+  /** What happens on card click — "detail" (open panel), "live" (open
+   *  external URL in new tab), or "locked" (ignore). */
+  clickBehavior?: "detail" | "live" | "locked";
+  /** External URL used when clickBehavior === "live". */
+  liveUrl?: string;
   detail: {
     category?: string;
     discipline?: string;
   };
+}
+
+// Site-wide settings editable in the Studio (singleton document).
+export interface MenuItem {
+  label: string;
+  href: string;
+  external?: boolean;
+}
+
+export interface SiteSettings {
+  menuItems?: MenuItem[];
+  footerTagline?: string;
+  footerCopyright?: string;
+  navTagline?: string;
+  connectWhatsapp?: string;
+  connectWhatsappHref?: string;
+  connectEmail?: string;
+  connectInstagram?: string;
+  connectLinkedin?: string;
 }

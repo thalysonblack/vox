@@ -3,11 +3,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { EASE, TIMING } from "@/components/carousel/carousel.constants";
+import type { SiteSettings } from "@/types/project";
 
 interface NavProps {
   compact?: boolean;
   onLogoClick?: () => void;
   introDone?: boolean;
+  settings?: SiteSettings;
 }
 
 // Parse any CSS color string into an [r, g, b] tuple via the browser's
@@ -41,6 +43,7 @@ export default function Nav({
   compact = false,
   onLogoClick,
   introDone = true,
+  settings,
 }: NavProps) {
   const [contactOpen, setContactOpen] = useState(false);
   const [panelTextColor, setPanelTextColor] = useState<"black" | "white">(
@@ -204,9 +207,27 @@ export default function Nav({
         style={introDone ? undefined : { opacity: 0, pointerEvents: "none" }}
       >
         <div className="hidden space-y-3 md:block">
-          <p className="max-w-[193px] text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.56px] text-black">
-            Design partner for founders and investors.
-          </p>
+          {settings?.navTagline ? (
+            <p className="max-w-[193px] text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.56px] text-black">
+              {settings.navTagline}
+            </p>
+          ) : null}
+          {settings?.menuItems && settings.menuItems.length > 0 ? (
+            <ul className="flex flex-col gap-2">
+              {settings.menuItems.map((item, idx) => (
+                <li key={`${item.href}-${idx}`}>
+                  <a
+                    href={item.href}
+                    target={item.external ? "_blank" : undefined}
+                    rel={item.external ? "noopener noreferrer" : undefined}
+                    className="text-[12px] font-semibold uppercase leading-[1.15] tracking-[-0.48px] text-black/60 transition-opacity hover:text-black"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
 
         <div
@@ -269,51 +290,61 @@ export default function Nav({
               className="flex w-full flex-col gap-6 p-[4px]"
               style={{ color: panelTextColor, opacity: 1 }}
             >
-              <div className="flex items-start justify-between gap-0">
-                <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
-                  Whatsapp
-                </span>
-                <a
-                  href="https://wa.me/5545999999999"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] opacity-40 transition-opacity hover:opacity-70"
-                >
-                  +55 45 9999-9999
-                </a>
-              </div>
-              <div className="flex items-start justify-between gap-0">
-                <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
-                  Email
-                </span>
-                <a
-                  href="mailto:hello@voxteller.com"
-                  className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] opacity-40 transition-opacity hover:opacity-70"
-                >
-                  hello@voxteller.com
-                </a>
-              </div>
-              <div className="flex items-start justify-between gap-0 text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
-                <span>Social</span>
-                <div className="flex gap-3">
+              {settings?.connectWhatsapp ? (
+                <div className="flex items-start justify-between gap-0">
+                  <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
+                    Whatsapp
+                  </span>
                   <a
-                    href="https://instagram.com"
+                    href={settings.connectWhatsappHref || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="opacity-40 transition-opacity hover:opacity-70"
+                    className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] opacity-40 transition-opacity hover:opacity-70"
                   >
-                    Instagram
-                  </a>
-                  <a
-                    href="https://linkedin.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="opacity-40 transition-opacity hover:opacity-70"
-                  >
-                    Linkedin
+                    {settings.connectWhatsapp}
                   </a>
                 </div>
-              </div>
+              ) : null}
+              {settings?.connectEmail ? (
+                <div className="flex items-start justify-between gap-0">
+                  <span className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
+                    Email
+                  </span>
+                  <a
+                    href={`mailto:${settings.connectEmail}`}
+                    className="text-[12px] font-semibold leading-[1.15] tracking-[-0.48px] opacity-40 transition-opacity hover:opacity-70"
+                  >
+                    {settings.connectEmail}
+                  </a>
+                </div>
+              ) : null}
+              {(settings?.connectInstagram || settings?.connectLinkedin) ? (
+                <div className="flex items-start justify-between gap-0 text-[12px] font-semibold leading-[1.15] tracking-[-0.48px]">
+                  <span>Social</span>
+                  <div className="flex gap-3">
+                    {settings?.connectInstagram ? (
+                      <a
+                        href={settings.connectInstagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="opacity-40 transition-opacity hover:opacity-70"
+                      >
+                        Instagram
+                      </a>
+                    ) : null}
+                    {settings?.connectLinkedin ? (
+                      <a
+                        href={settings.connectLinkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="opacity-40 transition-opacity hover:opacity-70"
+                      >
+                        Linkedin
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

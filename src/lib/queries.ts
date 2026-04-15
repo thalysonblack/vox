@@ -1,12 +1,28 @@
 // Light query for the carousel — only the fields needed to render cards.
-export const projectsListQuery = `*[_type == "project"] | order(order asc) {
+// Ordered via orderRank (drag-sortable in the Studio).
+export const projectsListQuery = `*[_type == "project"] | order(orderRank) {
   "id": slug.current,
   name,
   "image": image.asset->url,
+  clickBehavior,
+  liveUrl,
   "detail": {
     "category": category,
     "discipline": discipline
   }
+}`;
+
+// Site settings singleton — menu items, footer copy, CONNECT contacts.
+export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
+  menuItems[] { label, href, external },
+  footerTagline,
+  footerCopyright,
+  navTagline,
+  connectWhatsapp,
+  connectWhatsappHref,
+  connectEmail,
+  connectInstagram,
+  connectLinkedin
 }`;
 
 // Full query for a single project — fetched lazily when panel opens.

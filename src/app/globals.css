@@ -33,13 +33,13 @@
    and more peek into view, matching the editorial grid feel. */
 @media (min-width: 1920px) {
   :root {
-    --pc-w: clamp(458px, 24vw, 564px);
+    --pc-w: clamp(366px, 19vw, 451px);
   }
 }
 /* Cinema / 4K desktops (≥ 2560px). Bigger canvas = bigger cards. */
 @media (min-width: 2560px) {
   :root {
-    --pc-w: clamp(564px, 25vw, 722px);
+    --pc-w: clamp(451px, 20vw, 578px);
   }
 }
 @layer base {

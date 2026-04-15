@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useClient } from "sanity";
-import { IntentLink } from "sanity/router";
+import { usePaneRouter } from "sanity/structure";
 
 type BriefStatus =
   | "new"
@@ -76,11 +76,36 @@ function formatDate(iso?: string): string {
 
 export default function BriefKanban() {
   const client = useClient({ apiVersion: "2024-01-01" });
+  const paneRouter = usePaneRouter();
   const [cards, setCards] = useState<BriefCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<BriefStatus | null>(null);
+
+  const openCard = useCallback(
+    (id: string) => {
+      paneRouter.navigateIntent("edit", { id, type: "briefRequest" });
+    },
+    [paneRouter],
+  );
+
+  const deleteCard = useCallback(
+    async (id: string, title?: string) => {
+      const ok = window.confirm(
+        `Deletar "${title || "briefing"}"? Essa ação não pode ser desfeita.`,
+      );
+      if (!ok) return;
+      // Optimistic: remove locally first.
+      setCards((prev) => prev.filter((c) => c._id !== id));
+      try {
+        await client.delete(id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Falha ao deletar");
+      }
+    },
+    [client],
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -202,67 +227,74 @@ export default function BriefKanban() {
                     ? REQUEST_TYPE_LABELS[card.requestType] ?? card.requestType
                     : "—";
                   return (
-                    <IntentLink
+                    <article
                       key={card._id}
-                      intent="edit"
-                      params={{ id: card._id, type: "briefRequest" }}
-                      style={{ textDecoration: "none" }}
+                      draggable
+                      onClick={() => openCard(card._id)}
+                      onDragStart={(e) => {
+                        setDraggingId(card._id);
+                        e.dataTransfer.setData("text/plain", card._id);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragEnd={() => {
+                        setDraggingId(null);
+                        setOverColumn(null);
+                      }}
+                      style={{
+                        ...styles.card,
+                        opacity: draggingId === card._id ? 0.4 : 1,
+                      }}
                     >
-                      <article
-                        draggable
-                        onDragStart={(e) => {
-                          setDraggingId(card._id);
-                          e.dataTransfer.setData("text/plain", card._id);
-                          e.dataTransfer.effectAllowed = "move";
+                      <button
+                        type="button"
+                        aria-label="Deletar"
+                        title="Deletar"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void deleteCard(card._id, card.title);
                         }}
-                        onDragEnd={() => {
-                          setDraggingId(null);
-                          setOverColumn(null);
-                        }}
-                        style={{
-                          ...styles.card,
-                          opacity: draggingId === card._id ? 0.4 : 1,
-                        }}
+                        style={styles.cardDelete}
                       >
-                        <div style={styles.cardTitleRow}>
-                          <span style={styles.cardTitle}>
-                            {card.title || "Sem título"}
-                          </span>
-                          <span style={styles.cardDate}>
-                            {formatDate(card.submittedAt)}
-                          </span>
-                        </div>
-                        <div style={styles.cardMeta}>
-                          <span style={styles.cardType}>{typeLabel}</span>
-                          {card.requestSubtype && (
-                            <>
-                              <span style={styles.cardSep}>·</span>
-                              <span style={styles.cardSubtype}>
-                                {card.requestSubtype}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <div style={styles.cardContact}>
-                          {card.contactName || card.company || "—"}
-                          {card.company && card.contactName
-                            ? ` · ${card.company}`
-                            : ""}
-                        </div>
-                        {card.estimatedRange && (
-                          <div style={styles.cardRange}>
-                            {card.estimatedRange}
-                          </div>
+                        ×
+                      </button>
+                      <div style={styles.cardTitleRow}>
+                        <span style={styles.cardTitle}>
+                          {card.title || "Sem título"}
+                        </span>
+                        <span style={styles.cardDate}>
+                          {formatDate(card.submittedAt)}
+                        </span>
+                      </div>
+                      <div style={styles.cardMeta}>
+                        <span style={styles.cardType}>{typeLabel}</span>
+                        {card.requestSubtype && (
+                          <>
+                            <span style={styles.cardSep}>·</span>
+                            <span style={styles.cardSubtype}>
+                              {card.requestSubtype}
+                            </span>
+                          </>
                         )}
-                        {card.companySize && (
-                          <div style={styles.cardSize}>
-                            {card.companySize === "1"
-                              ? "Só 1 pessoa"
-                              : `${card.companySize} pessoas`}
-                          </div>
-                        )}
-                      </article>
-                    </IntentLink>
+                      </div>
+                      <div style={styles.cardContact}>
+                        {card.contactName || card.company || "—"}
+                        {card.company && card.contactName
+                          ? ` · ${card.company}`
+                          : ""}
+                      </div>
+                      {card.estimatedRange && (
+                        <div style={styles.cardRange}>
+                          {card.estimatedRange}
+                        </div>
+                      )}
+                      {card.companySize && (
+                        <div style={styles.cardSize}>
+                          {card.companySize === "1"
+                            ? "Só 1 pessoa"
+                            : `${card.companySize} pessoas`}
+                        </div>
+                      )}
+                    </article>
                   );
                 })}
               </div>
@@ -398,14 +430,32 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: "uppercase",
   },
   card: {
+    position: "relative",
     display: "flex",
     flexDirection: "column",
     gap: 6,
-    padding: "12px 12px 10px",
+    padding: "12px 28px 10px 12px",
     backgroundColor: "#fff",
     border: "1px solid rgba(0,0,0,0.1)",
-    cursor: "grab",
+    cursor: "pointer",
     transition: "border-color 120ms ease, transform 120ms ease",
+  },
+  cardDelete: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    width: 20,
+    height: 20,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "none",
+    background: "transparent",
+    color: "rgba(0,0,0,0.3)",
+    fontSize: 16,
+    lineHeight: 1,
+    cursor: "pointer",
+    borderRadius: 3,
   },
   cardTitleRow: {
     display: "flex",

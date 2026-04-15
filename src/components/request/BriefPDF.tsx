@@ -226,6 +226,7 @@ export default function BriefPDF({
   const contactRows = [
     { label: "Nome", value: formatValue(data.contactName) },
     { label: "Email", value: formatValue(data.contactEmail) },
+    { label: "WhatsApp", value: formatValue(data.contactWhatsapp) },
     { label: "Empresa", value: formatValue(data.company) },
     {
       label: "Trabalho para",

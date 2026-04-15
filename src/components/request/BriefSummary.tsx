@@ -9,6 +9,7 @@ export type BriefSummaryData = {
   title?: string;
   contactName?: string;
   contactEmail?: string;
+  contactWhatsapp?: string;
   company?: string;
   companySize?: string;
   companyAge?: string;
@@ -129,6 +130,7 @@ export default function BriefSummary({ data }: { data: BriefSummaryData }) {
       rows: [
         { label: "Nome", value: formatValue(data.contactName) },
         { label: "Email", value: formatValue(data.contactEmail) },
+        { label: "WhatsApp", value: formatValue(data.contactWhatsapp) },
         { label: "Empresa", value: formatValue(data.company) },
         {
           label: "Trabalho para",

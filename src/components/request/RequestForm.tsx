@@ -110,6 +110,7 @@ type FormState = {
   title: string;
   contactName: string;
   contactEmail: string;
+  contactWhatsapp: string;
   company: string;
   companySize: string;
   companyAge: string;
@@ -153,6 +154,7 @@ const INITIAL_STATE: FormState = {
   title: "",
   contactName: "",
   contactEmail: "",
+  contactWhatsapp: "",
   company: "",
   companySize: "",
   companyAge: "",
@@ -236,6 +238,7 @@ function buildSummary(
     title: form.title,
     contactName: form.contactName,
     contactEmail: form.contactEmail,
+    contactWhatsapp: form.contactWhatsapp,
     company: form.company,
     companySize: form.companySize,
     companyAge: form.companyAge,
@@ -382,6 +385,7 @@ export default function RequestForm() {
       fd.append("title", form.title);
       fd.append("contactName", form.contactName);
       fd.append("contactEmail", form.contactEmail);
+      fd.append("contactWhatsapp", form.contactWhatsapp);
       fd.append("company", form.company);
       fd.append("brand", form.brand);
       fd.append("requestType", form.requestType);
@@ -493,12 +497,18 @@ export default function RequestForm() {
         </FieldRow>
         <FieldRow>
           <TextField
+            label="WhatsApp"
+            type="tel"
+            info="Usamos pra adiantar o papo depois do briefing, se fizer sentido. DDD + número."
+            value={form.contactWhatsapp}
+            onChange={(v) => update("contactWhatsapp", v)}
+          />
+          <TextField
             label="Empresa"
             info="A empresa que está fazendo a solicitação (quem nos contrata)."
             value={form.company}
             onChange={(v) => update("company", v)}
           />
-          <div />
         </FieldRow>
         <RadioList
           label="Esse trabalho é para quem?"

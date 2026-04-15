@@ -113,6 +113,13 @@ export const briefRequestSchema = defineType({
       readOnly: true,
     }),
     defineField({
+      name: "contactWhatsapp",
+      title: "Contact WhatsApp",
+      type: "string",
+      group: "submitted",
+      readOnly: true,
+    }),
+    defineField({
       name: "company",
       title: "Company",
       type: "string",

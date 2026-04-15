@@ -17,6 +17,7 @@ type BriefCard = {
   status?: BriefStatus;
   company?: string;
   contactName?: string;
+  contactWhatsapp?: string;
   requestType?: string;
   requestSubtype?: string;
   companySize?: string;
@@ -40,6 +41,7 @@ const QUERY = `*[_type == "briefRequest"] | order(submittedAt desc) {
   status,
   company,
   contactName,
+  contactWhatsapp,
   requestType,
   requestSubtype,
   companySize,
@@ -282,6 +284,11 @@ export default function BriefKanban() {
                           ? ` · ${card.company}`
                           : ""}
                       </div>
+                      {card.contactWhatsapp && (
+                        <div style={styles.cardWhatsapp}>
+                          wa · {card.contactWhatsapp}
+                        </div>
+                      )}
                       {card.estimatedRange && (
                         <div style={styles.cardRange}>
                           {card.estimatedRange}
@@ -502,6 +509,15 @@ const styles: Record<string, React.CSSProperties> = {
   cardContact: {
     fontSize: 11,
     color: "rgba(0,0,0,0.55)",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  cardWhatsapp: {
+    fontSize: 10,
+    color: "#0f8a4c",
+    letterSpacing: 0.2,
+    fontWeight: 600,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",

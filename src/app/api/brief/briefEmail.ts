@@ -2,6 +2,7 @@ type EmailPayload = {
   title?: string;
   contactName?: string;
   contactEmail?: string;
+  contactWhatsapp?: string;
   company?: string;
   companySize?: string;
   companyAge?: string;
@@ -138,6 +139,7 @@ export function buildBriefEmailHTML(data: EmailPayload): string {
   const contactRows = [
     row("Nome", data.contactName),
     row("Email", data.contactEmail),
+    row("WhatsApp", data.contactWhatsapp),
     row("Empresa", data.company),
     row(
       "Trabalho para",
@@ -294,6 +296,7 @@ export function buildClientConfirmationHTML(data: EmailPayload): string {
   const contactRows = [
     row("Nome", data.contactName),
     row("Email", data.contactEmail),
+    row("WhatsApp", data.contactWhatsapp),
     row("Empresa", data.company),
   ].join("");
 
@@ -465,6 +468,7 @@ export function buildBriefEmailText(data: EmailPayload): string {
   lines.push(`— CONTATO —`);
   lines.push(`Nome: ${data.contactName ?? "—"}`);
   lines.push(`Email: ${data.contactEmail ?? "—"}`);
+  lines.push(`WhatsApp: ${data.contactWhatsapp ?? "—"}`);
   lines.push(`Empresa: ${data.company ?? "—"}`);
   if (data.workFor === "other" && data.brand)
     lines.push(`Marca cliente: ${data.brand}`);

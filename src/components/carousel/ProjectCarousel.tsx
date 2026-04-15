@@ -812,9 +812,7 @@ export default function ProjectCarousel({
   const isMobileViewport =
     typeof window !== "undefined" &&
     window.matchMedia("(max-width: 767px)").matches;
-  const effectiveVAlign: "Center" | "Top" | "Bottom" = isMobileViewport
-    ? "Center"
-    : config.vAlign;
+  const effectiveVAlign: string = isMobileViewport ? "Center" : config.vAlign;
   const vAlignClass =
     effectiveVAlign === "Center"
       ? "items-center"

@@ -157,7 +157,9 @@ export default function Nav({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.innerWidth >= 768) return;
+    // Probe runs on ALL viewports now — the CONNECT button needs to flip
+    // to white over dark project backgrounds on desktop too (e.g. when
+    // a project with a dark hero is open and the nav is overlaid).
     const sampleEl = (el: HTMLElement | null) => {
       if (!el) return null;
       const rect = el.getBoundingClientRect();

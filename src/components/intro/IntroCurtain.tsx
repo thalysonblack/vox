@@ -31,11 +31,12 @@ export default function IntroCurtain({
   const curtainRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLImageElement>(null);
 
-  // Detect reduced motion once.
-  const prefersReducedMotion = useRef(
-    typeof window !== "undefined" &&
+  // Detect reduced motion once via lazy useState (SSR-safe, linter-happy).
+  const [prefersReducedMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-  ).current;
+  );
 
   // Kick off the gate. When released, flip phase to "lifting".
   useEffect(() => {
@@ -77,11 +78,13 @@ export default function IntroCurtain({
       document.querySelector<HTMLElement>("[data-vox-logo] img") ??
       document.querySelector<HTMLElement>("[data-vox-logo]");
     if (!navLogoEl) {
-      // Nav logo not found — bail out gracefully to a fade.
+      // Nav logo not found — bail out gracefully to a fade. Defer the
+      // phase flip to the next microtask so we don't set state
+      // synchronously inside the layout effect body.
       curtain.style.opacity = "0";
       onHandoff();
       onComplete();
-      setPhase("done");
+      queueMicrotask(() => setPhase("done"));
       return;
     }
 

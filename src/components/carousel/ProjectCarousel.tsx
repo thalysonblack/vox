@@ -430,15 +430,61 @@ export default function ProjectCarousel({
       }
       const project = projectsRef.current.find((p) => p.id === initialSlug);
       if (!project) return;
-      // Mobile is already in vertical mode on mount (enterVerticalDirectly
-      // sets it up before paint). Skip the horizontal→vertical choreography
-      // entirely and just open the detail panel — the carousel stays where
-      // it is, no transformation animation plays.
-      if (isMobileRef.current) {
-        openDetailForProject(project);
-        return;
+
+      // Reloading directly on /project/[slug]: don't replay the
+      // horizontal→vertical choreography. Instead, immediately set up
+      // vertical mode (same as mobile does on mount) and open the panel.
+      // This fixes the "vertical buga pois refaz o efeito" bug when a
+      // user hits reload inside a project.
+      const needsDirectEnter =
+        !isMobileRef.current && modeRef.current !== "vertical";
+
+      if (needsDirectEnter) {
+        const { visible, nonCanonicalEls } = resolveCanonicalCards(
+          strip,
+          projectsRef.current,
+        );
+        if (visible.length === 0) {
+          if (tries < 30) requestAnimationFrame(kick);
+          return;
+        }
+        const cardW = visible[0].r.width;
+        const cardH = visible[0].r.height;
+        if (cardW === 0 || cardH === 0) {
+          if (tries < 30) requestAnimationFrame(kick);
+          return;
+        }
+        // Center on the clicked card.
+        const clickedIndex = visible.findIndex(
+          (v) => v.el.dataset.projectId === initialSlug,
+        );
+        const safeClickedIdx = clickedIndex >= 0 ? clickedIndex : 0;
+        const vpRect = strip.getBoundingClientRect();
+        const vState = buildVerticalState({
+          strip,
+          visible,
+          vpRect,
+          safeClickedIdx,
+          cardW,
+          cardH,
+        });
+        vStateRef.current = vState;
+        nonCanonicalElsRef.current = nonCanonicalEls;
+        modeRef.current = "vertical";
+        enterVerticalDirectly({
+          strip,
+          visible,
+          nonCanonicalEls,
+          vState,
+          cardW,
+          cardH,
+        });
+        posRef.current.target = 0;
+        posRef.current.current = 0;
+        impulseRef.current = 0;
       }
-      runChoreography(el);
+
+      openDetailForProject(project);
     };
     requestAnimationFrame(kick);
     // eslint-disable-next-line react-hooks/exhaustive-deps

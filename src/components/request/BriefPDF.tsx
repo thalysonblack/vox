@@ -3,6 +3,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { BriefSummaryData } from "./BriefSummary";
@@ -90,97 +91,76 @@ function formatValue(value: unknown): string {
   return String(value);
 }
 
-// @react-pdf bundles Helvetica natively — no font loading dance, stays
-// crisp at any zoom level since everything is vector.
+// Layout mirrors the email template: white card on neutral, PNG logo
+// at the top, eyebrow + title + meta strip, then data rows grouped by
+// section with a subtle separator.
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: "#ffffff",
-    paddingTop: 48,
-    paddingBottom: 56,
-    paddingHorizontal: 48,
+    backgroundColor: "#f5f5f4",
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingHorizontal: 0,
     fontFamily: "Helvetica",
     color: "#111111",
     fontSize: 10,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+  card: {
+    backgroundColor: "#ffffff",
+    margin: 24,
+    padding: 32,
+  },
+  headerBlock: {
     borderBottomWidth: 1,
-    borderBottomColor: "#111111",
-    paddingBottom: 16,
-    marginBottom: 32,
+    borderBottomColor: "#ececec",
+    paddingBottom: 22,
+    marginBottom: 24,
   },
-  brand: {
-    fontSize: 14,
-    fontFamily: "Helvetica-Bold",
-    letterSpacing: -0.3,
-  },
-  meta: {
-    fontSize: 8,
-    color: "#888888",
-    textAlign: "right",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-    fontFamily: "Helvetica-Bold",
-  },
-  titleBlock: {
-    marginBottom: 28,
+  logo: {
+    width: 140,
+    marginBottom: 16,
   },
   eyebrow: {
     fontSize: 8,
     color: "#888888",
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     textTransform: "uppercase",
     fontFamily: "Helvetica-Bold",
     marginBottom: 8,
   },
   title: {
-    fontSize: 28,
-    lineHeight: 1.1,
+    fontSize: 26,
+    lineHeight: 1.12,
     fontFamily: "Helvetica-Bold",
-    letterSpacing: -0.8,
+    letterSpacing: -0.6,
+    color: "#111111",
   },
   subtitle: {
-    marginTop: 10,
+    marginTop: 8,
     fontSize: 11,
-    color: "#555555",
+    color: "#666666",
     lineHeight: 1.5,
   },
-  section: {
-    marginBottom: 22,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    marginBottom: 12,
-  },
-  sectionBar: {
-    width: 14,
-    height: 2,
-    backgroundColor: "#111111",
-    marginRight: 10,
-  },
   sectionTitle: {
+    marginTop: 18,
+    marginBottom: 10,
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 1,
+    letterSpacing: 1.1,
     textTransform: "uppercase",
+    color: "#111111",
   },
   row: {
     flexDirection: "row",
-    paddingVertical: 6,
+    paddingTop: 8,
+    paddingBottom: 8,
     borderBottomWidth: 0.5,
-    borderBottomColor: "#eeeeee",
-  },
-  rowLast: {
-    borderBottomWidth: 0,
+    borderBottomColor: "#f0f0f0",
   },
   rowLabel: {
-    width: 130,
+    width: 140,
     fontSize: 8,
     color: "#888888",
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     textTransform: "uppercase",
     fontFamily: "Helvetica-Bold",
   },
@@ -190,80 +170,30 @@ const styles = StyleSheet.create({
     color: "#111111",
     lineHeight: 1.5,
   },
-  rangeBlock: {
-    marginTop: 4,
-    marginBottom: 22,
-    padding: 20,
-    backgroundColor: "#f5f5f4",
-    flexDirection: "column",
-  },
-  rangeLabel: {
+  footer: {
+    backgroundColor: "#fafafa",
+    borderTopWidth: 1,
+    borderTopColor: "#ececec",
+    padding: 16,
     fontSize: 8,
     color: "#888888",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    marginTop: 16,
+  },
+  footerBrand: {
     fontFamily: "Helvetica-Bold",
-    marginBottom: 10,
-  },
-  rangeValue: {
-    fontSize: 22,
-    fontFamily: "Helvetica-Bold",
-    letterSpacing: -0.6,
-  },
-  rangeNote: {
-    marginTop: 6,
-    fontSize: 9,
-    color: "#666666",
-    lineHeight: 1.5,
-  },
-  description: {
-    fontSize: 10,
-    lineHeight: 1.55,
     color: "#111111",
-    marginTop: 6,
+    fontSize: 9,
   },
-  footer: {
+  pageFooter: {
     position: "absolute",
-    left: 48,
-    right: 48,
-    bottom: 24,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderTopWidth: 0.5,
-    borderTopColor: "#eeeeee",
-    paddingTop: 12,
+    left: 24,
+    right: 24,
+    bottom: 8,
+    textAlign: "right",
     fontSize: 8,
     color: "#999999",
   },
-  footerText: {
-    fontFamily: "Helvetica-Bold",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
 });
-
-function RowsList({
-  rows,
-}: {
-  rows: { label: string; value: string }[];
-}) {
-  return (
-    <View>
-      {rows.map((row, idx) => (
-        <View
-          key={row.label}
-          style={[
-            styles.row,
-            idx === rows.length - 1 ? styles.rowLast : {},
-          ]}
-        >
-          <Text style={styles.rowLabel}>{row.label}</Text>
-          <Text style={styles.rowValue}>{row.value}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
 
 function Section({
   title,
@@ -274,23 +204,25 @@ function Section({
 }) {
   if (rows.length === 0) return null;
   return (
-    <View style={styles.section} wrap={false}>
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionBar} />
-        <Text style={styles.sectionTitle}>{title}</Text>
-      </View>
-      <RowsList rows={rows} />
+    <View wrap={false}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {rows.map((r) => (
+        <View key={r.label} style={styles.row}>
+          <Text style={styles.rowLabel}>{r.label}</Text>
+          <Text style={styles.rowValue}>{r.value}</Text>
+        </View>
+      ))}
     </View>
   );
 }
 
-export default function BriefPDF({ data }: { data: BriefSummaryData }) {
-  const today = new Date().toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-
+export default function BriefPDF({
+  data,
+  logoUrl,
+}: {
+  data: BriefSummaryData;
+  logoUrl?: string;
+}) {
   const contactRows = [
     { label: "Nome", value: formatValue(data.contactName) },
     { label: "Email", value: formatValue(data.contactEmail) },
@@ -344,12 +276,7 @@ export default function BriefPDF({ data }: { data: BriefSummaryData }) {
       ),
     },
     ...(data.requestSubtype
-      ? [
-          {
-            label: "Subcategoria",
-            value: formatValue(data.requestSubtype),
-          },
-        ]
+      ? [{ label: "Subcategoria", value: formatValue(data.requestSubtype) }]
       : []),
     {
       label: "Nível criativo",
@@ -360,6 +287,14 @@ export default function BriefPDF({ data }: { data: BriefSummaryData }) {
       ),
     },
     { label: "Prazo", value: formatDate(data.deadline) },
+    {
+      label: "Orçamento previsto",
+      value: formatValue(
+        data.clientBudget
+          ? CLIENT_BUDGET_LABELS[data.clientBudget] ?? data.clientBudget
+          : undefined,
+      ),
+    },
   ];
 
   const webRows = data.webAnswers
@@ -376,27 +311,28 @@ export default function BriefPDF({ data }: { data: BriefSummaryData }) {
       }))
     : [];
 
+  const descriptionRows = [
+    { label: "Descrição geral", value: formatValue(data.description) },
+    { label: "Observações", value: formatValue(data.observacoes) },
+  ];
+
   const filesRows = [
     ...(data.fileNames && data.fileNames.length > 0
       ? [{ label: "Arquivos", value: data.fileNames.join(", ") }]
       : []),
     ...(data.referenceNames && data.referenceNames.length > 0
-      ? [
-          {
-            label: "Refs (arquivos)",
-            value: data.referenceNames.join(", "),
-          },
-        ]
+      ? [{ label: "Refs (arquivos)", value: data.referenceNames.join(", ") }]
       : []),
     ...(data.referenceLinks && data.referenceLinks.length > 0
-      ? [
-          {
-            label: "Refs (links)",
-            value: data.referenceLinks.join(", "),
-          },
-        ]
+      ? [{ label: "Refs (links)", value: data.referenceLinks.join(", ") }]
       : []),
   ];
+
+  const requestTypeLabel = data.requestType
+    ? REQUEST_TYPE_LABELS[data.requestType] ?? data.requestType
+    : undefined;
+
+  const resolvedLogo = logoUrl ?? "https://voxteller.com/assets/vox-logo.png";
 
   return (
     <Document
@@ -406,75 +342,49 @@ export default function BriefPDF({ data }: { data: BriefSummaryData }) {
       producer="Goodtaste"
     >
       <Page size="A4" style={styles.page}>
-        <View style={styles.header} fixed>
-          <Text style={styles.brand}>Goodtaste®</Text>
-          <Text style={styles.meta}>Briefing · {today}</Text>
-        </View>
-
-        <View style={styles.titleBlock}>
-          <Text style={styles.eyebrow}>Solicitação</Text>
-          <Text style={styles.title}>{data.title ?? "Briefing sem título"}</Text>
-          {data.requestType && (
-            <Text style={styles.subtitle}>
-              {REQUEST_TYPE_LABELS[data.requestType] ?? data.requestType}
-              {data.company ? ` · ${data.company}` : ""}
-            </Text>
-          )}
-        </View>
-
-        {data.clientBudget && (
-          <View style={styles.rangeBlock} wrap={false}>
-            <Text style={styles.rangeLabel}>Orçamento previsto</Text>
-            <Text style={styles.rangeValue}>
-              {CLIENT_BUDGET_LABELS[data.clientBudget] ?? data.clientBudget}
-            </Text>
-            <Text style={styles.rangeNote}>
-              Valor indicado pelo cliente. A proposta final é definida após
-              entendermos o escopo completo do projeto.
-            </Text>
-          </View>
-        )}
-
-        <Section title="Contato" rows={contactRows} />
-        <Section title="Perfil da empresa" rows={companyRows} />
-        <Section title="Projeto" rows={projectRows} />
-        {webRows.length > 0 && (
-          <Section title="Detalhes — Webdesign" rows={webRows} />
-        )}
-        {categoryRows.length > 0 && (
-          <Section title="Detalhes da categoria" rows={categoryRows} />
-        )}
-
-        {(data.description || data.observacoes) && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionBar} />
-              <Text style={styles.sectionTitle}>Descrição & observações</Text>
-            </View>
-            {data.description && (
-              <Text style={styles.description}>{data.description}</Text>
-            )}
-            {data.observacoes && (
-              <Text style={[styles.description, { marginTop: 10 }]}>
-                {data.observacoes}
+        <View style={styles.card}>
+          <View style={styles.headerBlock}>
+            <Image src={resolvedLogo} style={styles.logo} />
+            <Text style={styles.eyebrow}>Briefing recebido</Text>
+            <Text style={styles.title}>{data.title ?? "Sem título"}</Text>
+            {(requestTypeLabel || data.company) && (
+              <Text style={styles.subtitle}>
+                {requestTypeLabel ?? ""}
+                {requestTypeLabel && data.company ? " · " : ""}
+                {data.company ?? ""}
               </Text>
             )}
           </View>
-        )}
 
-        {filesRows.length > 0 && (
-          <Section title="Arquivos & referências" rows={filesRows} />
-        )}
+          <Section title="Contato" rows={contactRows} />
+          <Section title="Perfil da empresa" rows={companyRows} />
+          <Section title="Projeto" rows={projectRows} />
+          {webRows.length > 0 && (
+            <Section title="Detalhes — Webdesign" rows={webRows} />
+          )}
+          {categoryRows.length > 0 && (
+            <Section title="Detalhes da categoria" rows={categoryRows} />
+          )}
+          <Section title="Descrição & observações" rows={descriptionRows} />
+          {filesRows.length > 0 && (
+            <Section title="Arquivos & referências" rows={filesRows} />
+          )}
 
-        <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>Goodtaste® · Briefing</Text>
-          <Text
-            style={styles.footerText}
-            render={({ pageNumber, totalPages }) =>
-              `${pageNumber} / ${totalPages}`
-            }
-          />
+          <View style={styles.footer}>
+            <Text style={styles.footerBrand}>Goodtaste®</Text>
+            <Text style={{ marginTop: 4 }}>
+              Strategy, design, and communication. · voxteller.com
+            </Text>
+          </View>
         </View>
+
+        <Text
+          style={styles.pageFooter}
+          fixed
+          render={({ pageNumber, totalPages }) =>
+            `${pageNumber} / ${totalPages}`
+          }
+        />
       </Page>
     </Document>
   );

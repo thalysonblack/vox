@@ -103,8 +103,12 @@ async function submitToAPI() {
 
 async function renderPDF(outPath: string) {
   console.log(`\n[2/2] Rendering PDF via @react-pdf/renderer …`);
+  const localLogo = resolve(process.cwd(), "public/assets/vox-logo.png");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const element = React.createElement(BriefPDF as any, { data: summary });
+  const element = React.createElement(BriefPDF as any, {
+    data: summary,
+    logoUrl: localLogo,
+  }) as unknown as Parameters<typeof pdf>[0];
   // pdf() returns a PdfInstance with toBuffer()/toBlob(). In Node we
   // prefer toBuffer() to avoid needing Blob globals.
   const instance = pdf(element);

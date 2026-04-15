@@ -57,3 +57,4 @@ next-env.d.ts
 # Test artifacts (generated PDFs)
 test-brief.pdf
 goodtaste-briefing-website.pdf
+goodtaste-briefing-website.docx

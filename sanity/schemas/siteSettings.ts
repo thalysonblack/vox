@@ -48,13 +48,8 @@ export const siteSettingsSchema = defineType({
           },
         },
       ],
-      // Pre-fill with the labels the site used before the CMS panel
-      // landed, so the first editor to open Site Settings doesn't lose
-      // the existing nav structure.
-      initialValue: [
-        { _key: "i1", label: "RESOURCES", href: "/resources", external: false },
-        { _key: "i2", label: "GALLERY", href: "/gallery", external: false },
-      ],
+      // Starts empty — editor adds menu items from the Studio when needed.
+      initialValue: [],
     }),
     defineField({
       name: "footerTagline",

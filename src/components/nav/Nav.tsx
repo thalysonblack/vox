@@ -13,12 +13,8 @@ interface NavProps {
 }
 
 // Fallbacks used when the siteSettings CMS doc doesn't exist yet, so
-// the nav never goes blank on a fresh install. Match the values that
-// were hardcoded before the CMS panel landed.
-const DEFAULT_MENU_ITEMS: MenuItem[] = [
-  { label: "RESOURCES", href: "/resources", external: false },
-  { label: "GALLERY", href: "/gallery", external: false },
-];
+// the nav never goes blank on a fresh install.
+const DEFAULT_MENU_ITEMS: MenuItem[] = [];
 const DEFAULT_NAV_TAGLINE = "Design partner for founders and investors.";
 const DEFAULT_WHATSAPP = "+55 45 9999-9999";
 const DEFAULT_WHATSAPP_HREF = "https://wa.me/5545999999999";
@@ -224,23 +220,29 @@ export default function Nav({
           <p className="max-w-[193px] text-[14px] font-semibold uppercase leading-[1.25] tracking-[-0.56px] text-black">
             {settings?.navTagline || DEFAULT_NAV_TAGLINE}
           </p>
-          <ul className="flex flex-col gap-2">
-            {(settings?.menuItems && settings.menuItems.length > 0
-              ? settings.menuItems
-              : DEFAULT_MENU_ITEMS
-            ).map((item, idx) => (
-              <li key={`${item.href}-${idx}`}>
-                <a
-                  href={item.href}
-                  target={item.external ? "_blank" : undefined}
-                  rel={item.external ? "noopener noreferrer" : undefined}
-                  className="text-[12px] font-semibold uppercase leading-[1.15] tracking-[-0.48px] text-black/60 transition-opacity hover:text-black"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+          {(() => {
+            const items =
+              settings?.menuItems && settings.menuItems.length > 0
+                ? settings.menuItems
+                : DEFAULT_MENU_ITEMS;
+            if (items.length === 0) return null;
+            return (
+              <ul className="flex flex-col gap-2">
+                {items.map((item, idx) => (
+                  <li key={`${item.href}-${idx}`}>
+                    <a
+                      href={item.href}
+                      target={item.external ? "_blank" : undefined}
+                      rel={item.external ? "noopener noreferrer" : undefined}
+                      className="text-[12px] font-semibold uppercase leading-[1.15] tracking-[-0.48px] text-black/60 transition-opacity hover:text-black"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
         </div>
 
         <div

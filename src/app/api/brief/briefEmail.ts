@@ -69,7 +69,6 @@ const CLIENT_BUDGET_LABELS: Record<string, string> = {
   "15k-40k": "R$ 15.000 – 40.000",
   "40k-100k": "R$ 40.000 – 100.000",
   "100k+": "R$ 100.000+",
-  unsure: "Ainda não sei",
 };
 
 function esc(value: unknown): string {

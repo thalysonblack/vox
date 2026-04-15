@@ -921,14 +921,7 @@ export default function RequestForm() {
           name="clientBudget"
           value={form.clientBudget}
           onChange={(v) => update("clientBudget", v)}
-          options={[
-            "<5k",
-            "5k-15k",
-            "15k-40k",
-            "40k-100k",
-            "100k+",
-            "unsure",
-          ]}
+          options={["<5k", "5k-15k", "15k-40k", "40k-100k", "100k+"]}
           renderOption={(v) =>
             v === "<5k"
               ? "Até R$ 5.000"
@@ -938,9 +931,7 @@ export default function RequestForm() {
                   ? "R$ 15.000 – 40.000"
                   : v === "40k-100k"
                     ? "R$ 40.000 – 100.000"
-                    : v === "100k+"
-                      ? "R$ 100.000+"
-                      : "Ainda não sei"
+                    : "R$ 100.000+"
           }
         />
       </FormSection>

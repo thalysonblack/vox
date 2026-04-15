@@ -148,14 +148,21 @@ export default function IntroCurtain({
         alt=""
         width={INTRO_LOGO_LARGE.widthPx}
         height={INTRO_LOGO_LARGE.heightPx}
+        className="intro-logo"
         style={{
           display: "block",
-          filter: "invert(1)",
           opacity: 0,
           animation: `intro-logo-fade-in ${INTRO_TIMING.logoFadeInDur}s ${INTRO_TIMING.logoFadeInDelay}s ${INTRO_EASE.logoFade} forwards`,
         }}
       />
       <style>{`
+        .intro-logo {
+          /* The Good Taste SVG is solid black — brightness(0) forces all
+             pixels to pure black, then invert(1) flips them to pure white.
+             More robust than invert(1) alone, which can be affected by
+             pre-existing non-black pixels or antialiasing. */
+          filter: brightness(0) invert(1);
+        }
         @keyframes intro-logo-fade-in {
           from { opacity: 0; transform: translateY(8px); }
           to   { opacity: 1; transform: translateY(0);   }

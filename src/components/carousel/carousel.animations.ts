@@ -116,12 +116,18 @@ export function enterVerticalDirectly(args: EnterVerticalDirectlyArgs) {
   // Non-canonicals: hide.
   gsap.set(nonCanonicalEls, { opacity: 0, pointerEvents: "none" });
 
-  // Apply vertical title font.
+  // Apply vertical title font + swap "View" → discipline label.
   visible.forEach(({ el }) => {
     const titleSpan = el.querySelector<HTMLElement>("div > span:first-child");
     if (titleSpan) {
       titleSpan.style.fontSize = VERTICAL_TITLE.fontSize;
       titleSpan.style.letterSpacing = VERTICAL_TITLE.letterSpacing;
+    }
+    const viewSpan = el.querySelector<HTMLElement>("[data-view-span]");
+    if (viewSpan) {
+      viewSpan.dataset.defaultText ??= viewSpan.textContent ?? "View";
+      const label = el.dataset.viewLabel || "View";
+      viewSpan.textContent = label;
     }
   });
 
@@ -329,12 +335,18 @@ export function createChoreographyTimeline(
     ease: "power2.out",
   });
 
-  // Apply vertical title font-size immediately.
+  // Apply vertical title font-size immediately + swap View → discipline.
   visible.forEach(({ el }) => {
     const titleSpan = el.querySelector<HTMLElement>("div > span:first-child");
     if (titleSpan) {
       titleSpan.style.fontSize = VERTICAL_TITLE.fontSize;
       titleSpan.style.letterSpacing = VERTICAL_TITLE.letterSpacing;
+    }
+    const viewSpan = el.querySelector<HTMLElement>("[data-view-span]");
+    if (viewSpan) {
+      viewSpan.dataset.defaultText ??= viewSpan.textContent ?? "View";
+      const label = el.dataset.viewLabel || "View";
+      viewSpan.textContent = label;
     }
   });
 
@@ -376,6 +388,11 @@ export function createChoreographyTimeline(
           if (titleSpan) {
             titleSpan.style.fontSize = "";
             titleSpan.style.letterSpacing = "";
+          }
+          // Restore the original "View" text on the right-side label.
+          const viewSpan = c.el.querySelector<HTMLElement>("[data-view-span]");
+          if (viewSpan) {
+            viewSpan.textContent = viewSpan.dataset.defaultText || "View";
           }
           const titleRow = c.el.firstElementChild as HTMLElement | null;
           if (titleRow) {
@@ -492,6 +509,12 @@ export function createReverseTimeline(ctx: ReverseContext): gsap.core.Timeline {
       titleRow.style.backgroundColor = "";
       titleRow.style.paddingLeft = "";
       titleRow.style.paddingRight = "";
+    }
+    // Restore the "View" text immediately so the swap back to horizontal
+    // doesn't show the discipline label for a frame before the cleanup.
+    const viewSpan = c.el.querySelector<HTMLElement>("[data-view-span]");
+    if (viewSpan) {
+      viewSpan.textContent = viewSpan.dataset.defaultText || "View";
     }
   });
 

@@ -14,9 +14,17 @@ interface ProjectCardProps {
 const { radius } = carouselConfig;
 
 export default function ProjectCard({ project, isFirst = false }: ProjectCardProps) {
+  // In vertical mode (mobile always, desktop after tapping a card) the
+  // "View" label is swapped for the project's discipline/type so each
+  // card shows its genre at a glance. Horizontal mode keeps "View".
+  // The swap itself is imperative (inside the tick handler + entry
+  // functions) — here we just stash the target label in a data attr.
+  const verticalLabel = project.detail?.discipline || "View";
+
   return (
     <div
       data-project-id={project.id}
+      data-view-label={verticalLabel}
       onMouseEnter={playTick}
       className="group flex shrink-0 cursor-pointer select-none flex-col pt-[8px]"
       style={{
@@ -45,7 +53,10 @@ export default function ProjectCard({ project, isFirst = false }: ProjectCardPro
         >
           {project.name}
         </span>
-        <span className="text-[12px] font-semibold uppercase tracking-[-0.48px] text-black/[0.19]">
+        <span
+          data-view-span
+          className="text-[12px] font-semibold uppercase tracking-[-0.48px] text-black/[0.19]"
+        >
           View
         </span>
       </div>

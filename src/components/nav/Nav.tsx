@@ -57,21 +57,29 @@ export default function Nav({
   const prevCompactRef = useRef(compact);
   const [renderedCompact, setRenderedCompact] = useState(compact);
 
-  // When the CONNECT panel opens, probe what's behind it and pick a
-  // text color for max contrast.
+  // When the CONNECT panel is OPEN, continuously probe what's behind
+  // it and pick a text color for max contrast. Re-probing on an
+  // interval tracks dynamic background changes (e.g. scrolling the
+  // vertical carousel underneath or the project panel gradient).
   useEffect(() => {
     if (!contactOpen) return;
-    const panel = panelRef.current;
-    if (!panel) return;
-    const rect = panel.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const prev = panel.style.visibility;
-    panel.style.visibility = "hidden";
-    const underneath = document.elementFromPoint(cx, cy);
-    panel.style.visibility = prev;
-    const lum = bgLuminance(underneath);
-    setPanelTextColor(lum > 0.55 ? "black" : "white");
+    const probe = () => {
+      const panel = panelRef.current;
+      if (!panel) return;
+      const rect = panel.getBoundingClientRect();
+      if (rect.width === 0) return;
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const prev = panel.style.visibility;
+      panel.style.visibility = "hidden";
+      const underneath = document.elementFromPoint(cx, cy);
+      panel.style.visibility = prev;
+      const lum = bgLuminance(underneath);
+      setPanelTextColor(lum > 0.55 ? "black" : "white");
+    };
+    probe();
+    const id = window.setInterval(probe, 160);
+    return () => window.clearInterval(id);
   }, [contactOpen]);
 
   // Logo + CONNECT button: probe what's behind them on mobile (where the
@@ -205,7 +213,10 @@ export default function Nav({
           className="pointer-events-auto relative"
           onMouseLeave={() => setContactOpen(false)}
         >
-          {/* CONNECT button — always in same position */}
+          {/* CONNECT button — color flips to white over dark backgrounds
+              via the luminance probe (mobile uses this because the nav
+              wrapper's z-[210] stacking context blocks mix-blend-mode
+              from blending through). */}
           <button
             ref={connectBtnRef}
             onClick={() => setContactOpen(!contactOpen)}

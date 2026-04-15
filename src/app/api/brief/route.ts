@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "next-sanity";
+import { Resend } from "resend";
+import {
+  buildBriefEmailHTML,
+  buildBriefEmailSubject,
+  buildBriefEmailText,
+} from "./briefEmail";
 
 const writeClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -8,6 +14,10 @@ const writeClient = createClient({
   token: process.env.SANITY_API_TOKEN,
   useCdn: false,
 });
+
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB per file
 const MAX_FILES_PER_FIELD = 10;
@@ -116,6 +126,83 @@ export async function POST(req: NextRequest) {
     };
 
     const created = await writeClient.create(doc);
+
+    // Fire off the notification email via Resend. Failure here must
+    // NOT block the submission response — the brief is already saved
+    // in Sanity and the user deserves a confirmation either way.
+    if (resend) {
+      const from =
+        process.env.RESEND_FROM_EMAIL ?? "Goodtaste <onboarding@resend.dev>";
+      const to = (
+        process.env.RESEND_TO_EMAIL ?? "hello@voxteller.com"
+      )
+        .split(",")
+        .map((e) => e.trim())
+        .filter(Boolean);
+
+      let answers: Record<string, unknown> = {};
+      try {
+        answers = JSON.parse(answersRaw) as Record<string, unknown>;
+      } catch {
+        answers = {};
+      }
+
+      const emailData = {
+        title: doc.title,
+        contactName: doc.contactName,
+        contactEmail: doc.contactEmail,
+        company: doc.company,
+        companySize: doc.companySize,
+        companyAge: doc.companyAge,
+        companyRevenue: doc.companyRevenue,
+        workFor: doc.workFor,
+        brand: doc.brand,
+        requestType: doc.requestType,
+        requestSubtype: doc.requestSubtype,
+        creativeLevel: doc.creativeLevel,
+        deadline: doc.deadline,
+        description: doc.description,
+        estimatedRange: doc.estimatedRange,
+        referenceLinks,
+        fileNames: files
+          .map((_, idx) => {
+            const entry = formData.getAll("files")[idx];
+            return entry instanceof File ? entry.name : "";
+          })
+          .filter(Boolean),
+        referenceFileNames: references
+          .map((_, idx) => {
+            const entry = formData.getAll("references")[idx];
+            return entry instanceof File ? entry.name : "";
+          })
+          .filter(Boolean),
+        answers,
+        sanityId: created._id,
+        studioBaseUrl:
+          process.env.NEXT_PUBLIC_SITE_URL
+            ? `${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/studio`
+            : undefined,
+      };
+
+      const replyTo =
+        typeof doc.contactEmail === "string" && doc.contactEmail.includes("@")
+          ? doc.contactEmail
+          : undefined;
+
+      try {
+        await resend.emails.send({
+          from,
+          to,
+          subject: buildBriefEmailSubject(emailData),
+          html: buildBriefEmailHTML(emailData),
+          text: buildBriefEmailText(emailData),
+          replyTo,
+        });
+      } catch (emailErr) {
+        console.error("[brief] resend send failed", emailErr);
+      }
+    }
+
     return NextResponse.json({ ok: true, id: created._id });
   } catch (error) {
     console.error("[brief] failed to create", error);

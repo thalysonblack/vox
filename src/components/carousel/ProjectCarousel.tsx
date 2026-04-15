@@ -309,6 +309,12 @@ export default function ProjectCarousel({
 
   const handleTapRef = useRef<(project: ProjectListItem, el: HTMLElement) => void>(() => {});
   handleTapRef.current = (project: ProjectListItem, el: HTMLElement) => {
+    // Hard guard: ignore ALL taps while a timeline is running. Prevents
+    // forward/reverse race conditions — without this, a fast double-tap
+    // or a tap during the horizontal→vertical transform lets two
+    // animations fight over the same card state refs, leaving the
+    // carousel in a wedged half-transformed state.
+    if (isAnimatingRef.current) return;
     if (modeRef.current === "vertical") {
       centerProjectInCarousel(project.id);
       openDetailForProject(project);

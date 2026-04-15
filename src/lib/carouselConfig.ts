@@ -30,7 +30,7 @@ export const carouselConfig = {
   vAlign: "Bottom" as const,
   /** Espaço entre a base dos cards e a borda inferior do viewport
    *  quando vAlign = "Bottom". Controla a "linha" editorial. */
-  bottomGapPx: 128,
+  bottomGapPx: 96,
 } as const;
 
 export type CarouselConfig = typeof carouselConfig;

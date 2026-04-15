@@ -62,14 +62,18 @@
   }
 }
 
-/* Focus-visible for keyboard navigation */
-:focus-visible {
-  outline: 2px solid #2d2f2f;
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-:focus:not(:focus-visible) {
-  outline: none;
+/* Focus-visible for keyboard navigation — wrapped in @layer base so
+   individual components can opt out via Tailwind's focus-visible:outline-none
+   on fields where a bottom-border focus style is the intended affordance. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid #2d2f2f;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 
 /* Card hover lift — use transform instead of Tailwind v4's new

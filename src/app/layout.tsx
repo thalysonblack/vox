@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,20 +15,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Goodtaste®",
-  description:
-    "Goodtaste® — design portfolio. Crafted projects in branding, product, and web.",
+  description: "Goodtaste® — design portfolio. Crafted projects in branding, product, and web.",
   openGraph: {
     title: "Goodtaste®",
-    description:
-      "Goodtaste® — design portfolio. Crafted projects in branding, product, and web.",
+    description: "Goodtaste® — design portfolio. Crafted projects in branding, product, and web.",
     siteName: "Goodtaste®",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Goodtaste®",
-    description:
-      "Goodtaste® — design portfolio. Crafted projects in branding, product, and web.",
+    description: "Goodtaste® — design portfolio. Crafted projects in branding, product, and web.",
   },
 };
 
@@ -41,10 +39,9 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://cdn.sanity.io" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );

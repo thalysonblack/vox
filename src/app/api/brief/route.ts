@@ -5,6 +5,9 @@ import {
   buildBriefEmailHTML,
   buildBriefEmailSubject,
   buildBriefEmailText,
+  buildClientConfirmationHTML,
+  buildClientConfirmationSubject,
+  buildClientConfirmationText,
 } from "./briefEmail";
 
 const writeClient = createClient({
@@ -201,7 +204,23 @@ export async function POST(req: NextRequest) {
           replyTo,
         });
       } catch (emailErr) {
-        console.error("[brief] resend send failed", emailErr);
+        console.error("[brief] resend team notification failed", emailErr);
+      }
+
+      // Confirmation to the submitter — only when we have a usable email.
+      if (replyTo) {
+        try {
+          await resend.emails.send({
+            from,
+            to: [replyTo],
+            subject: buildClientConfirmationSubject(emailData),
+            html: buildClientConfirmationHTML(emailData),
+            text: buildClientConfirmationText(emailData),
+            replyTo: to[0],
+          });
+        } catch (emailErr) {
+          console.error("[brief] resend client confirmation failed", emailErr);
+        }
       }
     }
 

@@ -53,3 +53,7 @@ next-env.d.ts
 # Superpowers brainstorm artifacts
 .superpowers/
 .claude/
+
+# Test artifacts (generated PDFs)
+test-brief.pdf
+goodtaste-briefing-website.pdf

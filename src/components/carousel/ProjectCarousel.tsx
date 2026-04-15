@@ -333,6 +333,17 @@ export default function ProjectCarousel({
     // runChoreography.
     onDetailClose?.();
 
+    // If the forward choreography is still running (user clicked a card
+    // then immediately closed before the horizontal→vertical transform
+    // finished), fast-forward it to completion so its onComplete
+    // side-effect fires and registers cleanupRef. Without this, the
+    // reverse runs with cleanupRef still null, the DOM/scroll is left
+    // half-transformed, and the next click sees modeRef stuck at
+    // "vertical" — requiring a second click to unstick the state.
+    if (isAnimatingRef.current && animTimelineRef.current) {
+      animTimelineRef.current.progress(1);
+    }
+
     // Mobile: stay in vertical mode, don't reverse to horizontal.
     if (isMobileRef.current) {
       setTimeout(() => setSelectedProject(null), 950);

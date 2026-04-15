@@ -173,8 +173,8 @@ export default function Nav({ compact = false, onLogoClick }: NavProps) {
           <img
             src="/assets/vox-logo.svg"
             alt="Good Taste"
-            width={renderedCompact ? 76 : isDesktop ? 353 : 144}
-            height={renderedCompact ? 11 : isDesktop ? 54 : 22}
+            width={renderedCompact ? 76 : isDesktop ? 353 : 130}
+            height={renderedCompact ? 11 : isDesktop ? 54 : 20}
             draggable={false}
             style={{ display: "block" }}
           />

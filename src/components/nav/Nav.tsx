@@ -65,6 +65,7 @@ export default function Nav({
   settings,
 }: NavProps) {
   const [contactOpen, setContactOpen] = useState(false);
+  const [hasHover, setHasHover] = useState(false);
   const [panelTextColor, setPanelTextColor] = useState<"black" | "white">(
     "black",
   );
@@ -116,6 +117,39 @@ export default function Nav({
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
+
+  // Hover capability gate: touch devices synthesize mouseenter/leave on
+  // tap, so a plain onMouseLeave on the CONNECT wrapper was closing the
+  // panel the instant the tap finished — requiring the user to tap 2–3
+  // times before it stuck. Only attach mouseleave where (hover: hover)
+  // is true; on touch we rely on a document-level click-outside.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setHasHover(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // Click-outside: close the panel when the user taps anywhere that
+  // isn't the panel or the CONNECT button. Only active while open so
+  // we don't listen needlessly.
+  useEffect(() => {
+    if (!contactOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (panelRef.current?.contains(target)) return;
+      if (connectBtnRef.current?.contains(target)) return;
+      setContactOpen(false);
+    };
+    // pointerdown fires before click, so on mobile we close before any
+    // delayed click handler on a neighbour can re-toggle things.
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () =>
+      document.removeEventListener("pointerdown", handlePointerDown);
+  }, [contactOpen]);
 
   // Nav lift: the whole nav slides UP, swaps the logo size while hidden
   // above the viewport, then drops back DOWN at the new size. Timing
@@ -258,7 +292,7 @@ export default function Nav({
 
         <div
           className="pointer-events-auto relative"
-          onMouseLeave={() => setContactOpen(false)}
+          onMouseLeave={hasHover ? () => setContactOpen(false) : undefined}
         >
           {/* CONNECT button — color flips to white over dark backgrounds
               via the luminance probe (works on mobile AND desktop; the

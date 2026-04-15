@@ -44,6 +44,56 @@ export const briefRequestSchema = defineType({
       type: "string",
     }),
     defineField({
+      name: "companySize",
+      title: "Company size (employees)",
+      type: "string",
+      options: {
+        list: [
+          { title: "Only me", value: "1" },
+          { title: "2 to 5", value: "2-5" },
+          { title: "6 to 20", value: "6-20" },
+          { title: "21 to 50", value: "21-50" },
+          { title: "51 to 200", value: "51-200" },
+          { title: "200+", value: "200+" },
+        ],
+      },
+    }),
+    defineField({
+      name: "companyAge",
+      title: "Company age",
+      type: "string",
+      options: {
+        list: [
+          { title: "Under 1 year", value: "<1" },
+          { title: "1 to 3 years", value: "1-3" },
+          { title: "3 to 7 years", value: "3-7" },
+          { title: "7 to 15 years", value: "7-15" },
+          { title: "15+ years", value: "15+" },
+        ],
+      },
+    }),
+    defineField({
+      name: "companyRevenue",
+      title: "Annual revenue (BRL)",
+      description: "Self-reported — shapes pricing tier signal.",
+      type: "string",
+      options: {
+        list: [
+          { title: "R$ 200k – 500k", value: "200k-500k" },
+          { title: "R$ 500k – 2M", value: "500k-2M" },
+          { title: "R$ 2M – 10M", value: "2M-10M" },
+          { title: "R$ 10M – 50M", value: "10M-50M" },
+        ],
+      },
+    }),
+    defineField({
+      name: "estimatedRange",
+      title: "Estimated range (BRL)",
+      description: "Snapshot of the price range shown to the client at submit time.",
+      type: "string",
+      readOnly: true,
+    }),
+    defineField({
       name: "workFor",
       title: "Work for",
       description: "Own company or another brand (agency/representative).",

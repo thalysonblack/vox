@@ -10,6 +10,7 @@ import {
 } from "react";
 import { CATEGORY_SCHEMAS, type CategoryField } from "./categorySchemas";
 import BriefSummary, { type BriefSummaryData } from "./BriefSummary";
+import { formatBRL, getRange, type PriceRange } from "./pricingRanges";
 
 type RequestType =
   | ""
@@ -110,6 +111,9 @@ type FormState = {
   contactName: string;
   contactEmail: string;
   company: string;
+  companySize: string;
+  companyAge: string;
+  companyRevenue: string;
   workFor: "" | "own" | "other";
   brand: string;
   referenceLinks: string[];
@@ -149,6 +153,9 @@ const INITIAL_STATE: FormState = {
   contactName: "",
   contactEmail: "",
   company: "",
+  companySize: "",
+  companyAge: "",
+  companyRevenue: "",
   workFor: "",
   brand: "",
   referenceLinks: [],
@@ -185,7 +192,10 @@ const INITIAL_STATE: FormState = {
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
-function buildSummary(form: FormState): BriefSummaryData {
+function buildSummary(
+  form: FormState,
+  range: PriceRange | null,
+): BriefSummaryData {
   const webKeys = [
     "webArea",
     "tipoAuditoria",
@@ -225,8 +235,14 @@ function buildSummary(form: FormState): BriefSummaryData {
     contactName: form.contactName,
     contactEmail: form.contactEmail,
     company: form.company,
+    companySize: form.companySize,
+    companyAge: form.companyAge,
+    companyRevenue: form.companyRevenue,
     workFor: form.workFor,
     brand: form.brand,
+    estimatedRange: range
+      ? `${formatBRL(range.min)} – ${formatBRL(range.max)}`
+      : undefined,
     requestType: form.requestType,
     requestSubtype:
       form.requestType === "webdesign" ? form.webArea : form.requestType,
@@ -311,9 +327,19 @@ export default function RequestForm() {
     }));
   };
 
+  const estimatedRange = useMemo<PriceRange | null>(
+    () => (form.requestType ? getRange(form.requestType, form.webArea) : null),
+    [form.requestType, form.webArea],
+  );
+
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (status === "submitting") return;
+    if (!form.companySize) {
+      setStatus("error");
+      setErrorMessage("Informe o número de funcionários.");
+      return;
+    }
     setStatus("submitting");
     setErrorMessage(null);
 
@@ -333,6 +359,15 @@ export default function RequestForm() {
       void _f;
       void _r;
       fd.append("workFor", form.workFor);
+      fd.append("companySize", form.companySize);
+      fd.append("companyAge", form.companyAge);
+      fd.append("companyRevenue", form.companyRevenue);
+      if (estimatedRange) {
+        fd.append(
+          "estimatedRange",
+          `${formatBRL(estimatedRange.min)} – ${formatBRL(estimatedRange.max)}`,
+        );
+      }
       fd.append("answers", JSON.stringify(answersWithoutFiles));
       form.files.forEach((file) => fd.append("files", file));
       form.references.forEach((file) => fd.append("references", file));
@@ -350,7 +385,7 @@ export default function RequestForm() {
         } | null;
         throw new Error(data?.error ?? "Falha ao enviar");
       }
-      setSummary(buildSummary(form));
+      setSummary(buildSummary(form, estimatedRange));
       setStatus("success");
       setForm(INITIAL_STATE);
     } catch (err) {
@@ -449,6 +484,51 @@ export default function RequestForm() {
             onChange={(v) => update("brand", v)}
           />
         )}
+
+        <RadioList
+          label="Número de funcionários *"
+          name="companySize"
+          value={form.companySize}
+          onChange={(v) => update("companySize", v)}
+          options={["1", "2-5", "6-20", "21-50", "51-200", "200+"]}
+          renderOption={(v) =>
+            v === "1"
+              ? "Só eu"
+              : v === "200+"
+                ? "200+"
+                : `${v} pessoas`
+          }
+        />
+        <RadioList
+          label="Há quanto tempo a empresa existe?"
+          name="companyAge"
+          value={form.companyAge}
+          onChange={(v) => update("companyAge", v)}
+          options={["<1", "1-3", "3-7", "7-15", "15+"]}
+          renderOption={(v) =>
+            v === "<1"
+              ? "Menos de 1 ano"
+              : v === "15+"
+                ? "15+ anos"
+                : `${v} anos`
+          }
+        />
+        <RadioList
+          label="Média de faturamento anual"
+          name="companyRevenue"
+          value={form.companyRevenue}
+          onChange={(v) => update("companyRevenue", v)}
+          options={["200k-500k", "500k-2M", "2M-10M", "10M-50M"]}
+          renderOption={(v) =>
+            v === "200k-500k"
+              ? "R$ 200k – 500k"
+              : v === "500k-2M"
+                ? "R$ 500k – 2M"
+                : v === "2M-10M"
+                  ? "R$ 2M – 10M"
+                  : "R$ 10M – 50M"
+          }
+        />
       </FormSection>
 
       <FormSection index="02" title="Título da solicitação" required>
@@ -793,6 +873,38 @@ export default function RequestForm() {
           rows={5}
         />
       </FormSection>
+
+      {estimatedRange && (
+        <section className="grid gap-4 border-y border-black/15 py-10 md:grid-cols-[200px_1fr] md:gap-10">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[-0.35px] text-black/40">
+              Referência
+            </p>
+            <p className="mt-2 text-[14px] font-semibold leading-[1.25] tracking-[-0.4px] text-black">
+              Range de investimento
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-baseline gap-4">
+              <span className="text-[32px] font-semibold tracking-[-1.2px] text-black md:text-[44px] md:tracking-[-1.8px]">
+                {formatBRL(estimatedRange.min)}
+              </span>
+              <span className="text-[14px] font-medium tracking-[-0.3px] text-black/35">
+                —
+              </span>
+              <span className="text-[32px] font-semibold tracking-[-1.2px] text-black md:text-[44px] md:tracking-[-1.8px]">
+                {formatBRL(estimatedRange.max)}
+              </span>
+            </div>
+            <p className="max-w-[560px] text-[12px] font-medium leading-[1.5] tracking-[-0.2px] text-black/55">
+              {estimatedRange.note ??
+                "Baseado na média de projetos similares no mercado brasileiro."}{" "}
+              O valor final depende de escopo, prazo e complexidade — fechamos
+              depois que entendermos o briefing completo.
+            </p>
+          </div>
+        </section>
+      )}
 
       <div className="flex flex-col gap-4 pt-10 md:flex-row md:items-center md:justify-between">
         <p className="max-w-[420px] text-[12px] font-medium leading-[1.5] tracking-[-0.2px] text-black/50">

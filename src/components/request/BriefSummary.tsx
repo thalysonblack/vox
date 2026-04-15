@@ -10,6 +10,9 @@ export type BriefSummaryData = {
   contactName?: string;
   contactEmail?: string;
   company?: string;
+  companySize?: string;
+  companyAge?: string;
+  companyRevenue?: string;
   workFor?: "" | "own" | "other";
   brand?: string;
   requestType?: string;
@@ -18,11 +21,36 @@ export type BriefSummaryData = {
   creativeLevel?: string;
   deadline?: string;
   observacoes?: string;
+  estimatedRange?: string;
   referenceLinks?: string[];
   fileNames?: string[];
   referenceNames?: string[];
   categoryAnswers?: Record<string, string | string[]>;
   webAnswers?: Record<string, string | string[]>;
+};
+
+const COMPANY_SIZE_LABELS: Record<string, string> = {
+  "1": "Só eu",
+  "2-5": "2 a 5 pessoas",
+  "6-20": "6 a 20 pessoas",
+  "21-50": "21 a 50 pessoas",
+  "51-200": "51 a 200 pessoas",
+  "200+": "200+ pessoas",
+};
+
+const COMPANY_AGE_LABELS: Record<string, string> = {
+  "<1": "Menos de 1 ano",
+  "1-3": "1 a 3 anos",
+  "3-7": "3 a 7 anos",
+  "7-15": "7 a 15 anos",
+  "15+": "15+ anos",
+};
+
+const COMPANY_REVENUE_LABELS: Record<string, string> = {
+  "200k-500k": "R$ 200k – 500k",
+  "500k-2M": "R$ 500k – 2M",
+  "2M-10M": "R$ 2M – 10M",
+  "10M-50M": "R$ 10M – 50M",
 };
 
 const REQUEST_TYPE_LABELS: Record<string, string> = {
@@ -105,6 +133,35 @@ export default function BriefSummary({ data }: { data: BriefSummaryData }) {
       ],
     },
     {
+      title: "Perfil da empresa",
+      rows: [
+        {
+          label: "Funcionários",
+          value: formatValue(
+            data.companySize
+              ? COMPANY_SIZE_LABELS[data.companySize] ?? data.companySize
+              : undefined,
+          ),
+        },
+        {
+          label: "Tempo de vida",
+          value: formatValue(
+            data.companyAge
+              ? COMPANY_AGE_LABELS[data.companyAge] ?? data.companyAge
+              : undefined,
+          ),
+        },
+        {
+          label: "Faturamento anual",
+          value: formatValue(
+            data.companyRevenue
+              ? COMPANY_REVENUE_LABELS[data.companyRevenue] ?? data.companyRevenue
+              : undefined,
+          ),
+        },
+      ],
+    },
+    {
       title: "Projeto",
       rows: [
         { label: "Título", value: formatValue(data.title) },
@@ -161,6 +218,18 @@ export default function BriefSummary({ data }: { data: BriefSummaryData }) {
       { label: "Observações", value: formatValue(data.observacoes) },
     ],
   });
+
+  if (data.estimatedRange) {
+    sections.push({
+      title: "Range de referência",
+      rows: [
+        {
+          label: "Investimento estimado",
+          value: formatValue(data.estimatedRange),
+        },
+      ],
+    });
+  }
 
   if (
     (data.fileNames && data.fileNames.length > 0) ||

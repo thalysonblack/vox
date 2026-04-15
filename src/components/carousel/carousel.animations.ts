@@ -357,7 +357,16 @@ export function createChoreographyTimeline(
       pos.current = 0;
 
       // Build cleanup closure for reverse.
-      const cleanup = (targetScrollLeft?: number) => {
+      // The `targetScrollLeft` argument from reverse is ignored — we
+      // ALWAYS restore to the exact savedScrollLeft captured at forward
+      // start. This fixes two visible bugs:
+      //   1. "Doesn't return to where it came from" — reverse used to
+      //      pass rawNewScrollLeft (card-centered) which shifted the
+      //      strip to a different position than pre-open.
+      //   2. "Flickers to readjust" — the mismatch between the visual
+      //      end-state of the reverse tween and the cleanup scroll
+      //      position caused a one-frame jump.
+      const cleanup = (_targetScrollLeft?: number) => {
         vState.cards.forEach((c) => {
           c.el.style.cursor = "";
           c.el.style.pointerEvents = "";
@@ -384,14 +393,21 @@ export function createChoreographyTimeline(
             zIndex: "",
           });
         });
+        // Non-canonicals (duplicate card instances from the infinite
+        // scroll setup) MUST be fully opaque and pointer-interactive
+        // before we set scrollLeft — otherwise cards can appear missing
+        // or cause blank spaces right after the reverse lands.
         gsap.set(nonCanonicalEls, { opacity: 1, pointerEvents: "auto" });
         strip.style.overflow = prevOverflow;
-        gsap.set(innerDivs, { x: 0 });
 
+        // Order matters: set scrollLeft FIRST so the strip is at the
+        // target position, then clear innerDivs (which removes the
+        // visual compensation offset). Doing them in the other order
+        // causes a one-frame flash where cards are visually off from
+        // where they should be.
         const sw = (cardW + config.gap) * n;
-        const scrollValue =
-          targetScrollLeft !== undefined ? targetScrollLeft : savedScrollLeft;
-        strip.scrollLeft = ((scrollValue % sw) + sw) % sw;
+        strip.scrollLeft = ((savedScrollLeft % sw) + sw) % sw;
+        gsap.set(innerDivs, { x: 0 });
       };
       callbacks.onComplete(cleanup);
     },
@@ -479,17 +495,6 @@ export function createReverseTimeline(ctx: ReverseContext): gsap.core.Timeline {
     }
   });
 
-  // Compute target scroll that centers the active card.
-  const n = v.cards.length;
-  const curScrollSlots = pos.current / v.stepY;
-  const activeIdx =
-    (v.safeClickedIdx - Math.round(curScrollSlots) + n * 1000) % n;
-  const stripW = strip.getBoundingClientRect().width;
-  const cardCenterX =
-    12 + activeIdx * v.horizontalStride + (v.horizontalStride - config.gap) / 2;
-  const rawNewScrollLeft = cardCenterX - stripW / 2;
-  const targetXDelta = v.savedScrollLeft - rawNewScrollLeft;
-
   // Fade duplicates back in.
   if (nonCanonicalEls.length > 0) {
     gsap.killTweensOf(nonCanonicalEls);
@@ -505,7 +510,10 @@ export function createReverseTimeline(ctx: ReverseContext): gsap.core.Timeline {
 
   const tl = gsap.timeline({
     defaults: { ease: "expo.out" },
-    onComplete: () => ctx.onComplete(rawNewScrollLeft),
+    // The cleanup closure (stored on cleanupRef) ignores the
+    // targetScrollLeft argument and always restores savedScrollLeft,
+    // so we pass 0 here. Keeping the parameter for API compatibility.
+    onComplete: () => ctx.onComplete(0),
   });
 
   // Mirror the forward choreography but with the axes in reverse order:
@@ -514,11 +522,14 @@ export function createReverseTimeline(ctx: ReverseContext): gsap.core.Timeline {
   // horizontalStart) — cards slide horizontally back into their row
   // positions first, then expand/rotate back to their resting size.
   v.cards.forEach((c) => {
-    // Horizontal slide back to the row position.
+    // Horizontal slide back to the row position — target x: 0 so the
+    // card ends at its natural layout position. Combined with cleanup
+    // restoring savedScrollLeft, the visual during and after the
+    // tween matches the pre-open state.
     tl.to(
       c.el,
       {
-        x: targetXDelta,
+        x: 0,
         duration: TIMING.horizontalDur,
       },
       0,

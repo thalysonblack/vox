@@ -264,6 +264,37 @@ export default function RequestForm() {
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [summary, setSummary] = useState<BriefSummaryData | null>(null);
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+
+  const downloadPDF = async () => {
+    if (!summary || pdfGenerating) return;
+    setPdfGenerating(true);
+    try {
+      const [{ pdf }, { default: BriefPDF }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("./BriefPDF"),
+      ]);
+      const blob = await pdf(<BriefPDF data={summary} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const slug =
+        (summary.title || "briefing")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .slice(0, 60) || "briefing";
+      a.download = `goodtaste-${slug}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("[brief] pdf generation failed", err);
+    } finally {
+      setPdfGenerating(false);
+    }
+  };
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -411,10 +442,11 @@ export default function RequestForm() {
         <div className="print-hide mt-8 flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={() => window.print()}
-            className="inline-flex cursor-pointer items-center gap-3 border border-black bg-black px-6 py-3 text-[11px] font-semibold uppercase tracking-[-0.35px] text-white transition-colors hover:bg-white hover:text-black"
+            onClick={downloadPDF}
+            disabled={pdfGenerating}
+            className="inline-flex cursor-pointer items-center gap-3 border border-black bg-black px-6 py-3 text-[11px] font-semibold uppercase tracking-[-0.35px] text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Baixar PDF
+            {pdfGenerating ? "Gerando…" : "Baixar PDF"}
             <span aria-hidden>↓</span>
           </button>
           <button

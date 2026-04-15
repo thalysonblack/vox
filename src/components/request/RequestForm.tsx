@@ -1,7 +1,15 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { CATEGORY_SCHEMAS, type CategoryField } from "./categorySchemas";
+import BriefSummary, { type BriefSummaryData } from "./BriefSummary";
 
 type RequestType =
   | ""
@@ -177,10 +185,69 @@ const INITIAL_STATE: FormState = {
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
+function buildSummary(form: FormState): BriefSummaryData {
+  const webKeys = [
+    "webArea",
+    "tipoAuditoria",
+    "descricaoAuditoria",
+    "dadosUX",
+    "tipoPaginaDestino",
+    "tipoPaginaSite",
+    "goals",
+    "descricaoPagina",
+    "jornadaCliente",
+    "audienciaAlvo",
+    "descricaoRequestSite",
+    "temConteudo",
+    "tipoRecurso",
+    "descricaoRecursos",
+    "tipoProduto",
+    "descricaoProduto",
+    "fluxoNavegacao",
+    "requisitosProduto",
+    "organizarAB",
+    "objetivoAB",
+    "descricaoAB",
+  ] as const;
+
+  const webAnswers: Record<string, string | string[]> = {};
+  if (form.requestType === "webdesign") {
+    for (const key of webKeys) {
+      const v = form[key];
+      if (Array.isArray(v) ? v.length > 0 : typeof v === "string" && v) {
+        webAnswers[key] = v as string | string[];
+      }
+    }
+  }
+
+  return {
+    title: form.title,
+    contactName: form.contactName,
+    contactEmail: form.contactEmail,
+    company: form.company,
+    workFor: form.workFor,
+    brand: form.brand,
+    requestType: form.requestType,
+    requestSubtype:
+      form.requestType === "webdesign" ? form.webArea : form.requestType,
+    description: form.description,
+    creativeLevel: form.creativeLevel,
+    deadline: form.deadline,
+    observacoes: form.observacoes,
+    referenceLinks: form.referenceLinks,
+    fileNames: form.files.map((f) => f.name),
+    referenceNames: form.references.map((f) => f.name),
+    categoryAnswers:
+      form.requestType !== "webdesign" ? form.categoryAnswers : undefined,
+    webAnswers: Object.keys(webAnswers).length > 0 ? webAnswers : undefined,
+  };
+}
+
 export default function RequestForm() {
   const [form, setForm] = useState<FormState>(INITIAL_STATE);
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [summary, setSummary] = useState<BriefSummaryData | null>(null);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -283,6 +350,7 @@ export default function RequestForm() {
         } | null;
         throw new Error(data?.error ?? "Falha ao enviar");
       }
+      setSummary(buildSummary(form));
       setStatus("success");
       setForm(INITIAL_STATE);
     } catch (err) {
@@ -293,25 +361,45 @@ export default function RequestForm() {
 
   if (status === "success") {
     return (
-      <section className="py-24">
+      <section className="print-root py-12">
         <p className="text-[12px] font-semibold uppercase tracking-[-0.42px] text-black/55">
-          Recebido
+          Briefing · {new Date().toLocaleDateString("pt-BR")}
         </p>
-        <h2 className="mt-6 max-w-[820px] text-[44px] font-semibold leading-[1.02] tracking-[-2px] text-black md:text-[68px] md:tracking-[-3px]">
-          Obrigado — sua solicitação está registrada.
+        <h2 className="mt-6 max-w-[820px] text-[36px] font-semibold leading-[1.02] tracking-[-1.6px] text-black md:text-[56px] md:tracking-[-2.4px]">
+          {summary?.title || "Briefing registrado"}
         </h2>
-        <p className="mt-6 max-w-[520px] text-[14px] font-medium leading-[1.5] tracking-[-0.2px] text-black/60">
-          A gente responde por email em até 48h úteis com uma devolutiva sobre
-          escopo, prazo e próximos passos.
+        <p className="mt-6 max-w-[520px] text-[14px] font-medium leading-[1.5] tracking-[-0.2px] text-black/60 print-hide">
+          Recebemos sua solicitação. Abaixo está um resumo do que foi enviado —
+          você pode baixar em PDF para arquivar.
         </p>
-        <button
-          type="button"
-          onClick={() => setStatus("idle")}
-          className="mt-10 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[-0.42px] text-black underline underline-offset-4 transition-opacity hover:opacity-60"
-        >
-          Enviar outro briefing
-          <span aria-hidden>→</span>
-        </button>
+
+        <div className="print-hide mt-8 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex cursor-pointer items-center gap-3 border border-black bg-black px-6 py-3 text-[11px] font-semibold uppercase tracking-[-0.35px] text-white transition-colors hover:bg-white hover:text-black"
+          >
+            Baixar PDF
+            <span aria-hidden>↓</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSummary(null);
+              setStatus("idle");
+            }}
+            className="inline-flex cursor-pointer items-center gap-3 border border-black/20 px-6 py-3 text-[11px] font-semibold uppercase tracking-[-0.35px] text-black transition-colors hover:border-black"
+          >
+            Enviar outro briefing
+            <span aria-hidden>→</span>
+          </button>
+        </div>
+
+        {summary && (
+          <div className="mt-16">
+            <BriefSummary data={summary} />
+          </div>
+        )}
       </section>
     );
   }
@@ -691,19 +779,11 @@ export default function RequestForm() {
 
       <FormSection index="08" title="Prazo & observações">
         <FieldRow>
-          <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[-0.35px] text-black/55">
-              Prazo sugerido
-            </span>
-            <input
-              type="date"
-              value={form.deadline}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                update("deadline", e.target.value)
-              }
-              className="border-b border-black/20 bg-transparent py-2 text-[14px] font-medium tracking-[-0.2px] text-black outline-none transition-colors focus:border-black focus-visible:outline-none"
-            />
-          </div>
+          <DateField
+            label="Prazo sugerido"
+            value={form.deadline}
+            onChange={(v) => update("deadline", v)}
+          />
           <div />
         </FieldRow>
         <TextArea
@@ -722,7 +802,7 @@ export default function RequestForm() {
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="group inline-flex items-center justify-between gap-6 border border-black bg-black px-8 py-5 text-[12px] font-semibold uppercase tracking-[-0.42px] text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50 md:min-w-[320px]"
+          className="group inline-flex cursor-pointer items-center justify-between gap-6 border border-black bg-black px-8 py-5 text-[12px] font-semibold uppercase tracking-[-0.42px] text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50 md:min-w-[320px]"
         >
           {status === "submitting" ? "Enviando…" : "Enviar briefing"}
           <span aria-hidden className="transition-transform group-hover:translate-x-1">
@@ -827,7 +907,7 @@ function InfoTip({ text }: { text: string }) {
         }}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
-        className="flex h-[14px] w-[14px] items-center justify-center rounded-full border border-black/30 text-[9px] font-semibold text-black/50 transition-colors hover:border-black hover:text-black"
+        className="flex h-[14px] w-[14px] cursor-pointer items-center justify-center rounded-full border border-black/30 text-[9px] font-semibold text-black/50 transition-colors hover:border-black hover:text-black"
       >
         i
       </button>
@@ -1170,7 +1250,7 @@ function LinkList({
         <button
           type="button"
           onClick={commit}
-          className="shrink-0 border border-black px-4 py-2 text-[11px] font-semibold uppercase tracking-[-0.35px] text-black transition-colors hover:bg-black hover:text-white"
+          className="shrink-0 cursor-pointer border border-black px-4 py-2 text-[11px] font-semibold uppercase tracking-[-0.35px] text-black transition-colors hover:bg-black hover:text-white"
         >
           + Adicionar
         </button>
@@ -1204,7 +1284,7 @@ function LinkList({
                 <button
                   type="button"
                   onClick={() => onRemove(idx)}
-                  className="shrink-0 text-[10px] font-semibold uppercase tracking-[-0.3px] text-black/50 transition-colors hover:text-black"
+                  className="shrink-0 cursor-pointer text-[10px] font-semibold uppercase tracking-[-0.3px] text-black/50 transition-colors hover:text-black"
                 >
                   Remover
                 </button>
@@ -1232,6 +1312,22 @@ function FileDrop({
 }) {
   const [dragOver, setDragOver] = useState(false);
   const inputId = `file-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+  // Generate object URLs once per file and revoke on unmount / file swap.
+  const thumbs = useMemo(
+    () =>
+      files.map((f) =>
+        f.type.startsWith("image/") ? URL.createObjectURL(f) : null,
+      ),
+    [files],
+  );
+  useEffect(() => {
+    return () => {
+      thumbs.forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+    };
+  }, [thumbs]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -1279,28 +1375,147 @@ function FileDrop({
         </span>
       )}
       {files.length > 0 && (
-        <ul className="mt-1 divide-y divide-black/10 border-t border-b border-black/10">
-          {files.map((file, idx) => (
-            <li
-              key={`${file.name}-${idx}`}
-              className="flex items-center justify-between gap-4 py-2 text-[12px] font-medium tracking-[-0.2px] text-black"
-            >
-              <span className="truncate">
-                {file.name}
-                <span className="ml-2 text-black/40">
-                  {(file.size / 1024).toFixed(0)} KB
-                </span>
-              </span>
-              <button
-                type="button"
-                onClick={() => onRemove(idx)}
-                className="shrink-0 text-[10px] font-semibold uppercase tracking-[-0.3px] text-black/50 transition-colors hover:text-black"
+        <ul className="mt-1 grid gap-2">
+          {files.map((file, idx) => {
+            const thumb = thumbs[idx];
+            return (
+              <li
+                key={`${file.name}-${idx}`}
+                className="flex items-center gap-3 border border-black/10 p-2"
               >
-                Remover
-              </button>
-            </li>
-          ))}
+                <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center overflow-hidden border border-black/10 bg-black/[0.03]">
+                  {thumb ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={thumb}
+                      alt={file.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[9px] font-semibold uppercase tracking-[-0.2px] text-black/40">
+                      {file.name.split(".").pop()?.slice(0, 4) || "file"}
+                    </span>
+                  )}
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-[12px] font-medium tracking-[-0.2px] text-black">
+                    {file.name}
+                  </span>
+                  <span className="text-[10px] font-medium tracking-[-0.15px] text-black/40">
+                    {(file.size / 1024).toFixed(0)} KB
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onRemove(idx)}
+                  className="shrink-0 cursor-pointer text-[10px] font-semibold uppercase tracking-[-0.3px] text-black/50 transition-colors hover:text-black"
+                >
+                  Remover
+                </button>
+              </li>
+            );
+          })}
         </ul>
+      )}
+    </div>
+  );
+}
+
+function DateField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const display = value
+    ? new Date(`${value}T00:00:00`).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "Selecionar data";
+
+  const openPicker = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    if (typeof el.showPicker === "function") {
+      try {
+        el.showPicker();
+        return;
+      } catch {
+        /* fallback to focus */
+      }
+    }
+    el.focus();
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-[11px] font-semibold uppercase tracking-[-0.35px] text-black/55">
+        {label}
+      </span>
+      <button
+        type="button"
+        onClick={openPicker}
+        className="group relative flex cursor-pointer items-center justify-between gap-3 border-b border-black/20 py-2 text-left transition-colors hover:border-black/60 focus:border-black focus-visible:outline-none"
+      >
+        <span
+          className={`text-[14px] font-medium tracking-[-0.2px] transition-colors ${
+            value ? "text-black" : "text-black/35"
+          }`}
+        >
+          {display}
+        </span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          className="text-black/45 transition-colors group-hover:text-black"
+        >
+          <rect
+            x="1.5"
+            y="2.5"
+            width="11"
+            height="10"
+            stroke="currentColor"
+            strokeWidth="1.2"
+          />
+          <path
+            d="M1.5 5.5H12.5"
+            stroke="currentColor"
+            strokeWidth="1.2"
+          />
+          <path
+            d="M4.5 1.5V3.5M9.5 1.5V3.5"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+        </svg>
+        <input
+          ref={inputRef}
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+          tabIndex={-1}
+          aria-hidden
+        />
+      </button>
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="self-start text-[10px] font-semibold uppercase tracking-[-0.3px] text-black/40 transition-colors hover:text-black"
+        >
+          Limpar
+        </button>
       )}
     </div>
   );

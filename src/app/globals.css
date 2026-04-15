@@ -79,6 +79,36 @@ textarea:focus {
   outline: none;
 }
 
+/* Print-to-PDF for the brief summary: hides everything on the page
+   except elements marked as printable and strips nav / footer / buttons
+   so the generated PDF is a clean document. */
+@media print {
+  body {
+    background: #fff !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .print-root,
+  .print-root * {
+    visibility: visible;
+  }
+  .print-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 24px 32px;
+  }
+  .print-hide {
+    display: none !important;
+  }
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+}
+
 /* Card hover lift — use transform instead of Tailwind v4's new
    `translate` CSS property so GSAP's clearProps:"transform" doesn't
    collide with the hover interpolation in the production bundle. */

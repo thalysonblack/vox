@@ -32,22 +32,25 @@ async function uploadFiles(
   const entries = formData
     .getAll(field)
     .filter((e): e is File => e instanceof File && e.size > 0)
+    .filter((f) => f.size <= MAX_FILE_BYTES)
     .slice(0, MAX_FILES_PER_FIELD);
 
-  const refs: AssetRef[] = [];
-  for (const file of entries) {
-    if (file.size > MAX_FILE_BYTES) continue;
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const asset = await writeClient.assets.upload("file", buffer, {
-      filename: file.name,
-      contentType: file.type || "application/octet-stream",
-    });
-    refs.push({
-      _type: "file",
-      _key: asset._id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 16),
-      asset: { _type: "reference", _ref: asset._id },
-    });
-  }
+  // Parallelise uploads — previous sequential loop turned a 3-file
+  // submission into 3x the round-trip latency to Sanity's asset API.
+  const refs = await Promise.all(
+    entries.map(async (file, idx) => {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const asset = await writeClient.assets.upload("file", buffer, {
+        filename: file.name,
+        contentType: file.type || "application/octet-stream",
+      });
+      return {
+        _type: "file" as const,
+        _key: `${asset._id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12)}${idx}`,
+        asset: { _type: "reference" as const, _ref: asset._id },
+      };
+    }),
+  );
   return refs;
 }
 

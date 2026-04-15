@@ -27,19 +27,18 @@
     opacity: 0;
   }
 }
-/* Ultra-wide desktops (> 1920px). Bump the clamp max so cards keep
-   growing proportionally instead of stranding the layout in the middle
-   of the viewport with big white margins. */
+/* Ultra-wide desktops (≥ 1920px). Reduced from 31vw/880 cap to give
+   the cards breathing room on 2560px Dell monitors without filling
+   the full viewport height. */
 @media (min-width: 1920px) {
   :root {
-    --pc-w: clamp(695px, 31vw, 880px);
+    --pc-w: clamp(600px, 25vw, 750px);
   }
 }
-/* Cinema / 4K desktops (≥ 2560px). Larger cap, slightly bigger vw
-   share so the carousel fills the larger canvas with presence. */
+/* Cinema / 4K desktops (≥ 2560px). Larger cap for even bigger canvases. */
 @media (min-width: 2560px) {
   :root {
-    --pc-w: clamp(880px, 33vw, 1080px);
+    --pc-w: clamp(750px, 27vw, 950px);
   }
 }
 @layer base {

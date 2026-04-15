@@ -27,18 +27,19 @@
     opacity: 0;
   }
 }
-/* Ultra-wide desktops (≥ 1920px). Reduced from 31vw/880 cap to give
-   the cards breathing room on 2560px Dell monitors without filling
-   the full viewport height. */
+/* 1920×1080 (FullHD desktops). The base clamp(280, 31vw, 695) tops out
+   at 595 here — fine vertically but leaves the nav area feeling cramped
+   with 3 cards barely fitting. Use 27vw so cards are smaller and more
+   cards peek into view, matching the editorial grid feel. */
 @media (min-width: 1920px) {
   :root {
-    --pc-w: clamp(600px, 25vw, 750px);
+    --pc-w: clamp(520px, 27vw, 640px);
   }
 }
-/* Cinema / 4K desktops (≥ 2560px). Larger cap for even bigger canvases. */
+/* Cinema / 4K desktops (≥ 2560px). Bigger canvas = bigger cards. */
 @media (min-width: 2560px) {
   :root {
-    --pc-w: clamp(750px, 27vw, 950px);
+    --pc-w: clamp(640px, 28vw, 820px);
   }
 }
 @layer base {

@@ -141,8 +141,17 @@ export const briefRequestSchema = defineType({
       readOnly: true,
     }),
     defineField({
+      name: "clientBudget",
+      title: "Client budget (selected)",
+      description: "What the client said they plan to invest.",
+      type: "string",
+      group: "submitted",
+      readOnly: true,
+    }),
+    defineField({
       name: "estimatedRange",
       title: "Estimated range (BRL)",
+      description: "Internal market reference at submit time.",
       type: "string",
       group: "submitted",
       readOnly: true,

@@ -46,6 +46,15 @@ const COMPANY_REVENUE_LABELS: Record<string, string> = {
   "10M-50M": "R$ 10M – 50M",
 };
 
+const CLIENT_BUDGET_LABELS: Record<string, string> = {
+  "<5k": "Até R$ 5.000",
+  "5k-15k": "R$ 5.000 – 15.000",
+  "15k-40k": "R$ 15.000 – 40.000",
+  "40k-100k": "R$ 40.000 – 100.000",
+  "100k+": "R$ 100.000+",
+  unsure: "Ainda não sei",
+};
+
 const CREATIVE_LABELS: Record<string, string> = {
   minimo: "Mínimo",
   moderado: "Moderado",
@@ -414,14 +423,15 @@ export default function BriefPDF({ data }: { data: BriefSummaryData }) {
           )}
         </View>
 
-        {data.estimatedRange && (
+        {data.clientBudget && (
           <View style={styles.rangeBlock} wrap={false}>
-            <Text style={styles.rangeLabel}>Range de investimento</Text>
-            <Text style={styles.rangeValue}>{data.estimatedRange}</Text>
+            <Text style={styles.rangeLabel}>Orçamento previsto</Text>
+            <Text style={styles.rangeValue}>
+              {CLIENT_BUDGET_LABELS[data.clientBudget] ?? data.clientBudget}
+            </Text>
             <Text style={styles.rangeNote}>
-              Baseado na média de projetos similares no mercado brasileiro.
-              O valor final depende de escopo, prazo e complexidade — fechamos
-              após entender o briefing completo.
+              Valor indicado pelo cliente. A proposta final é definida após
+              entendermos o escopo completo do projeto.
             </Text>
           </View>
         )}

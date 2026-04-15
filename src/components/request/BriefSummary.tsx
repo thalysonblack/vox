@@ -21,6 +21,7 @@ export type BriefSummaryData = {
   creativeLevel?: string;
   deadline?: string;
   observacoes?: string;
+  clientBudget?: string;
   estimatedRange?: string;
   referenceLinks?: string[];
   fileNames?: string[];
@@ -51,6 +52,15 @@ const COMPANY_REVENUE_LABELS: Record<string, string> = {
   "500k-2M": "R$ 500k – 2M",
   "2M-10M": "R$ 2M – 10M",
   "10M-50M": "R$ 10M – 50M",
+};
+
+const CLIENT_BUDGET_LABELS: Record<string, string> = {
+  "<5k": "Até R$ 5.000",
+  "5k-15k": "R$ 5.000 – 15.000",
+  "15k-40k": "R$ 15.000 – 40.000",
+  "40k-100k": "R$ 40.000 – 100.000",
+  "100k+": "R$ 100.000+",
+  unsure: "Ainda não sei",
 };
 
 const REQUEST_TYPE_LABELS: Record<string, string> = {
@@ -219,16 +229,23 @@ export default function BriefSummary({ data }: { data: BriefSummaryData }) {
     ],
   });
 
-  if (data.estimatedRange) {
-    sections.push({
-      title: "Range de referência",
-      rows: [
-        {
-          label: "Investimento estimado",
-          value: formatValue(data.estimatedRange),
-        },
-      ],
-    });
+  if (data.clientBudget || data.estimatedRange) {
+    const rows = [];
+    if (data.clientBudget) {
+      rows.push({
+        label: "Orçamento do cliente",
+        value: formatValue(
+          CLIENT_BUDGET_LABELS[data.clientBudget] ?? data.clientBudget,
+        ),
+      });
+    }
+    if (data.estimatedRange) {
+      rows.push({
+        label: "Range de referência",
+        value: formatValue(data.estimatedRange),
+      });
+    }
+    sections.push({ title: "Investimento", rows });
   }
 
   if (

@@ -14,6 +14,7 @@ type EmailPayload = {
   deadline?: string;
   description?: string;
   observacoes?: string;
+  clientBudget?: string;
   estimatedRange?: string;
   referenceLinks?: string[];
   fileNames?: string[];
@@ -60,6 +61,15 @@ const COMPANY_REVENUE_LABELS: Record<string, string> = {
   "500k-2M": "R$ 500k – 2M",
   "2M-10M": "R$ 2M – 10M",
   "10M-50M": "R$ 10M – 50M",
+};
+
+const CLIENT_BUDGET_LABELS: Record<string, string> = {
+  "<5k": "Até R$ 5.000",
+  "5k-15k": "R$ 5.000 – 15.000",
+  "15k-40k": "R$ 15.000 – 40.000",
+  "40k-100k": "R$ 40.000 – 100.000",
+  "100k+": "R$ 100.000+",
+  unsure: "Ainda não sei",
 };
 
 function esc(value: unknown): string {
@@ -167,7 +177,13 @@ export function buildBriefEmailHTML(data: EmailPayload): string {
     row("Subcategoria", data.requestSubtype),
     row("Nível criativo", data.creativeLevel),
     row("Prazo", data.deadline),
-    row("Range estimado", data.estimatedRange),
+    row(
+      "Orçamento do cliente",
+      data.clientBudget
+        ? CLIENT_BUDGET_LABELS[data.clientBudget] ?? data.clientBudget
+        : undefined,
+    ),
+    row("Range estimado (interno)", data.estimatedRange),
   ].join("");
 
   const details = data.answers ?? {};

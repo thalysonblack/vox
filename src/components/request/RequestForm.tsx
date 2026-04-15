@@ -143,6 +143,7 @@ type FormState = {
   creativeLevel: string;
   deadline: string;
   observacoes: string;
+  clientBudget: string;
   files: File[];
   references: File[];
   categoryAnswers: Record<string, string | string[]>;
@@ -185,6 +186,7 @@ const INITIAL_STATE: FormState = {
   creativeLevel: "",
   deadline: "",
   observacoes: "",
+  clientBudget: "",
   files: [],
   references: [],
   categoryAnswers: {},
@@ -250,6 +252,7 @@ function buildSummary(
     creativeLevel: form.creativeLevel,
     deadline: form.deadline,
     observacoes: form.observacoes,
+    clientBudget: form.clientBudget,
     referenceLinks: form.referenceLinks,
     fileNames: form.files.map((f) => f.name),
     referenceNames: form.references.map((f) => f.name),
@@ -393,6 +396,7 @@ export default function RequestForm() {
       fd.append("companySize", form.companySize);
       fd.append("companyAge", form.companyAge);
       fd.append("companyRevenue", form.companyRevenue);
+      fd.append("clientBudget", form.clientBudget);
       if (estimatedRange) {
         fd.append(
           "estimatedRange",
@@ -906,37 +910,40 @@ export default function RequestForm() {
         />
       </FormSection>
 
-      {estimatedRange && (
-        <section className="grid gap-4 border-y border-black/15 py-10 md:grid-cols-[200px_1fr] md:gap-10">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[-0.35px] text-black/40">
-              Referência
-            </p>
-            <p className="mt-2 text-[14px] font-semibold leading-[1.25] tracking-[-0.4px] text-black">
-              Range de investimento
-            </p>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-baseline gap-4">
-              <span className="text-[32px] font-semibold tracking-[-1.2px] text-black md:text-[44px] md:tracking-[-1.8px]">
-                {formatBRL(estimatedRange.min)}
-              </span>
-              <span className="text-[14px] font-medium tracking-[-0.3px] text-black/35">
-                —
-              </span>
-              <span className="text-[32px] font-semibold tracking-[-1.2px] text-black md:text-[44px] md:tracking-[-1.8px]">
-                {formatBRL(estimatedRange.max)}
-              </span>
-            </div>
-            <p className="max-w-[560px] text-[12px] font-medium leading-[1.5] tracking-[-0.2px] text-black/55">
-              {estimatedRange.note ??
-                "Baseado na média de projetos similares no mercado brasileiro."}{" "}
-              O valor final depende de escopo, prazo e complexidade — fechamos
-              depois que entendermos o briefing completo.
-            </p>
-          </div>
-        </section>
-      )}
+      <FormSection index="09" title="Investimento">
+        <p className="max-w-[560px] text-[13px] font-medium leading-[1.55] tracking-[-0.2px] text-black/60">
+          Qual o orçamento que você tem separado (ou pretende investir) para
+          este projeto? Não se preocupe em acertar o número exato — isso só
+          ajuda a gente a desenhar uma proposta realista desde o começo.
+        </p>
+        <RadioList
+          label="Faixa de investimento"
+          name="clientBudget"
+          value={form.clientBudget}
+          onChange={(v) => update("clientBudget", v)}
+          options={[
+            "<5k",
+            "5k-15k",
+            "15k-40k",
+            "40k-100k",
+            "100k+",
+            "unsure",
+          ]}
+          renderOption={(v) =>
+            v === "<5k"
+              ? "Até R$ 5.000"
+              : v === "5k-15k"
+                ? "R$ 5.000 – 15.000"
+                : v === "15k-40k"
+                  ? "R$ 15.000 – 40.000"
+                  : v === "40k-100k"
+                    ? "R$ 40.000 – 100.000"
+                    : v === "100k+"
+                      ? "R$ 100.000+"
+                      : "Ainda não sei"
+          }
+        />
+      </FormSection>
 
       <div className="flex flex-col gap-4 pt-10 md:flex-row md:items-center md:justify-between">
         <p className="max-w-[420px] text-[12px] font-medium leading-[1.5] tracking-[-0.2px] text-black/50">

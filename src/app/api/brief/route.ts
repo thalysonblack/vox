@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
       companySize: str(formData.get("companySize"), 20),
       companyAge: str(formData.get("companyAge"), 20),
       companyRevenue: str(formData.get("companyRevenue"), 20),
+      clientBudget: str(formData.get("clientBudget"), 20),
       estimatedRange: str(formData.get("estimatedRange"), 60),
       workFor: str(formData.get("workFor"), 20),
       brand: str(formData.get("brand"), 160),
@@ -162,6 +163,7 @@ export async function POST(req: NextRequest) {
         creativeLevel: doc.creativeLevel,
         deadline: doc.deadline,
         description: doc.description,
+        clientBudget: doc.clientBudget,
         estimatedRange: doc.estimatedRange,
         referenceLinks,
         fileNames: files

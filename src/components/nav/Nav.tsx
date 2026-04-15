@@ -268,7 +268,7 @@ export default function Nav({
           <button
             ref={connectBtnRef}
             onClick={() => setContactOpen(!contactOpen)}
-            className="relative z-[102] flex cursor-pointer items-center gap-2"
+            className="relative z-[102] -m-3 flex cursor-pointer items-center gap-2 p-3"
             style={{
               color: connectDark ? "white" : "black",
               transition: "color 200ms ease-out",

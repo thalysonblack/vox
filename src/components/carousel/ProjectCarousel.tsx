@@ -739,7 +739,13 @@ export default function ProjectCarousel({
       ordered = cards;
     }
 
-    gsap.set(strip, { clearProps: "opacity,transform,pointerEvents" });
+    // Clear the strip's opacity/transform but KEEP pointer-events: none
+    // until the stagger finishes — prevents clicks landing on cards
+    // that haven't fully formed yet.
+    gsap.set(strip, { clearProps: "opacity,transform" });
+    strip.style.pointerEvents = "none";
+    const staggerTotalSec =
+      0.7 + Math.max(0, ordered.length - 1) * 0.04;
     gsap.fromTo(
       ordered,
       { opacity: 0, y: 40 },
@@ -750,8 +756,20 @@ export default function ProjectCarousel({
         ease: "expo.out",
         stagger: 0.04,
         clearProps: "opacity,transform",
+        onComplete: () => {
+          strip.style.pointerEvents = "";
+        },
       },
     );
+    // Safety net: if the tween's onComplete somehow doesn't fire (kill,
+    // unmount), still release pointer-events via a timer.
+    const releaseTimer = window.setTimeout(
+      () => {
+        strip.style.pointerEvents = "";
+      },
+      Math.ceil(staggerTotalSec * 1000) + 100,
+    );
+    return () => window.clearTimeout(releaseTimer);
   }, [introDone]);
 
   // -----------------------------------------------------------------------

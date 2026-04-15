@@ -428,6 +428,16 @@ export default function ProjectCarousel({
         if (tries < 30) requestAnimationFrame(kick);
         return;
       }
+      const project = projectsRef.current.find((p) => p.id === initialSlug);
+      if (!project) return;
+      // Mobile is already in vertical mode on mount (enterVerticalDirectly
+      // sets it up before paint). Skip the horizontal→vertical choreography
+      // entirely and just open the detail panel — the carousel stays where
+      // it is, no transformation animation plays.
+      if (isMobileRef.current) {
+        openDetailForProject(project);
+        return;
+      }
       runChoreography(el);
     };
     requestAnimationFrame(kick);

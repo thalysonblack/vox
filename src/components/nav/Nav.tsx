@@ -34,11 +34,20 @@ function parseRgb(color: string): [number, number, number] | null {
 }
 
 // Walk up from an element until we find a non-transparent bg; return its
-// relative luminance (0 = black, 1 = white).
+// relative luminance (0 = black, 1 = white). If we encounter an <img>
+// or an element with a CSS background-image before hitting a solid
+// color, treat it as dark content (luminance 0) — the probe can't read
+// the pixel, but the assumption is safer than falling through to the
+// body's white and showing black text over a photo.
 function bgLuminance(el: Element | null): number {
   let cur: Element | null = el;
   while (cur) {
-    const bg = parseRgb(getComputedStyle(cur).backgroundColor);
+    // Treat any raster image (img tag or CSS background-image) as dark.
+    const tag = cur.tagName?.toLowerCase();
+    if (tag === "img" || tag === "picture" || tag === "video") return 0;
+    const cs = getComputedStyle(cur);
+    if (cs.backgroundImage && cs.backgroundImage !== "none") return 0;
+    const bg = parseRgb(cs.backgroundColor);
     if (bg) {
       const [r, g, b] = bg;
       // Relative luminance (ITU-R BT.601 approximation — fast and close enough).
@@ -249,17 +258,17 @@ export default function Nav({
           className="pointer-events-auto relative"
           onMouseLeave={() => setContactOpen(false)}
         >
-          {/* CONNECT button — on mobile uses mix-blend-mode: difference
-              against a forced-white color so it inverts against whatever
-              is behind. On desktop (≥768) falls back to the luminance
-              probe flipping between black/white. */}
+          {/* CONNECT button — color flips to white over dark backgrounds
+              via the luminance probe (works on mobile AND desktop; the
+              earlier mix-blend-difference attempt failed because the
+              nav wrapper's z-[210] creates an isolated stacking context
+              and the blend couldn't reach the body content). */}
           <button
             ref={connectBtnRef}
             onClick={() => setContactOpen(!contactOpen)}
             className="relative z-[102] flex cursor-pointer items-center gap-2"
             style={{
-              color: isDesktop ? (connectDark ? "white" : "black") : "#ffffff",
-              mixBlendMode: isDesktop ? "normal" : "difference",
+              color: connectDark ? "white" : "black",
               transition: "color 200ms ease-out",
             }}
           >

@@ -87,6 +87,7 @@ export default function ProjectCarousel({
 
   // --- Animation state ---
   const isAnimatingRef = useRef(false);
+  const isReversingRef = useRef(false);
   const isPhysicsPausedRef = useRef(false);
   const animTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const modeRef = useRef<"horizontal" | "vertical">("horizontal");
@@ -328,6 +329,12 @@ export default function ProjectCarousel({
   // -----------------------------------------------------------------------
 
   const closePanel = useCallback(() => {
+    // Re-entry guard: if a reverse animation is already running, ignore
+    // this call. Prevents multi-click-close from stacking two reverse
+    // timelines on top of each other (which leaves cards in wrong
+    // positions — the "everything goes white" bug).
+    if (isReversingRef.current) return;
+
     setPanelVisible(false);
     if (typeof window !== "undefined") {
       window.history.pushState({}, "", "/");
@@ -358,6 +365,7 @@ export default function ProjectCarousel({
 
     if (modeRef.current === "vertical" && vStateRef.current && stripRef.current) {
       isAnimatingRef.current = true;
+      isReversingRef.current = true;
       gsap.killTweensOf(posRef.current);
 
       createReverseTimeline({
@@ -369,6 +377,7 @@ export default function ProjectCarousel({
           cleanupRef.current?.(rawNewScrollLeft);
           cleanupRef.current = null;
           isAnimatingRef.current = false;
+          isReversingRef.current = false;
           setSelectedProject(null);
         },
       });

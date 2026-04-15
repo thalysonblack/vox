@@ -27,6 +27,21 @@
     opacity: 0;
   }
 }
+/* Ultra-wide desktops (> 1920px). Bump the clamp max so cards keep
+   growing proportionally instead of stranding the layout in the middle
+   of the viewport with big white margins. */
+@media (min-width: 1920px) {
+  :root {
+    --pc-w: clamp(695px, 31vw, 880px);
+  }
+}
+/* Cinema / 4K desktops (≥ 2560px). Larger cap, slightly bigger vw
+   share so the carousel fills the larger canvas with presence. */
+@media (min-width: 2560px) {
+  :root {
+    --pc-w: clamp(880px, 33vw, 1080px);
+  }
+}
 @layer base {
   body {
     background: var(--background);

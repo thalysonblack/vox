@@ -71,41 +71,17 @@ export function createIntroTimeline(ctx: IntroTimelineCtx): {
     0,
   );
 
-  // Phase 2: centered intro logo travels to the nav logo's bounding box.
-  // Deltas computed from the start/target rects so the final frame lands
-  // pixel-perfect on the real nav logo position (which has already laid
-  // out because fonts.ready has resolved before this runs).
-  const dx = ctx.navLogoRect.x - ctx.introLogoStartRect.x;
-  const dy = ctx.navLogoRect.y - ctx.introLogoStartRect.y;
-  const scaleX = ctx.navLogoRect.width / ctx.introLogoStartRect.width;
-  const scaleY = ctx.navLogoRect.height / ctx.introLogoStartRect.height;
-  tl.to(
-    ctx.introLogoEl,
-    {
-      x: dx,
-      y: dy,
-      scaleX,
-      scaleY,
-      transformOrigin: "top left",
-      duration: INTRO_TIMING.logoTravelDur,
-      ease: INTRO_EASE.logoTravel,
-    },
-    INTRO_TIMING.logoTravelDelay,
-  );
-
-  // Handoff fires mid-timeline, at handoffAtFromLift seconds from start.
-  // The intro logo handoffs to the nav logo in this frame — the nav
-  // component flips its own opacity to 1 simultaneously.
+  // Logo stays inside the curtain and rides up with it — no travel
+  // tween. When the curtain is mostly off-screen, onHandoff fires and
+  // the nav takes over. Simpler, less fragile, and avoids the
+  // pixel-matching dance with getBoundingClientRect.
   tl.call(ctx.onHandoff, [], INTRO_TIMING.handoffAtFromLift);
 
   const summary: IntroTimelineSummary = {
     curtainLiftEnd: INTRO_TIMING.curtainLiftDur,
-    logoTravelEnd: INTRO_TIMING.logoTravelDelay + INTRO_TIMING.logoTravelDur,
+    logoTravelEnd: INTRO_TIMING.curtainLiftDur,
     handoffAt: INTRO_TIMING.handoffAtFromLift,
-    totalDuration: Math.max(
-      INTRO_TIMING.curtainLiftDur,
-      INTRO_TIMING.logoTravelDelay + INTRO_TIMING.logoTravelDur,
-    ),
+    totalDuration: INTRO_TIMING.curtainLiftDur,
   };
 
   return { timeline: tl, summary };

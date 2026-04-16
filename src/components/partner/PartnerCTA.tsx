@@ -1,24 +1,37 @@
 export default function PartnerCTA() {
   return (
-    <section className="bg-[#111] px-6 py-28 md:px-12 md:py-40 lg:px-20">
-      <div className="mx-auto max-w-[1400px]">
-        <h2 className="max-w-[1100px] text-[32px] font-semibold leading-[1] tracking-[-1.6px] text-white md:text-[56px] md:tracking-[-3px] lg:text-[76px] lg:tracking-[-4px]">
-          Enquanto voc&ecirc; fecha o pr&oacute;ximo
-          <span className="text-white/30"> &mdash; </span>
-          a gente garante que o atual vire refer&ecirc;ncia.
+    <section className="bg-black px-5 py-36 md:px-10 md:py-52 lg:px-16">
+      <div className="mx-auto max-w-[1440px]">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
+          Pr&oacute;ximo passo
+        </p>
+
+        <h2 className="mt-10 text-[9vw] font-semibold uppercase leading-[0.88] tracking-[-0.04em] text-white md:text-[7vw] lg:text-[96px]">
+          Enquanto voc&ecirc;
+          <br />
+          fecha o pr&oacute;ximo
+          <span className="text-white/20"> /</span>
+          <br />
+          a gente garante
+          <br />
+          que o atual vire
+          <br />
+          refer&ecirc;ncia
         </h2>
 
-        <div className="mt-14 flex flex-col gap-6 md:mt-20 md:flex-row md:items-center md:gap-10">
+        <div className="mt-16 flex flex-col gap-6 md:mt-24 md:flex-row md:items-center md:gap-10">
           <a
             href="https://wa.me/5564984175364"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex cursor-pointer items-center gap-3 bg-white px-8 py-5 text-[12px] font-semibold uppercase tracking-[0.06em] text-black transition-opacity hover:opacity-80"
+            className="group inline-flex cursor-pointer items-center gap-4 border border-white/20 px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
           >
             Iniciar conversa
-            <span aria-hidden>&rarr;</span>
+            <span className="transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </a>
-          <span className="text-[12px] font-medium tracking-[-0.2px] text-white/30">
+          <span className="text-[11px] font-normal tracking-[0.04em] text-white/20">
             Respondemos em at&eacute; 24h
           </span>
         </div>

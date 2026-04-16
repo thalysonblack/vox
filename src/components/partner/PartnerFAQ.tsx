@@ -41,39 +41,36 @@ export default function PartnerFAQ() {
       {FAQ_ITEMS.map((item, index) => {
         const isOpen = openIndex === index;
         return (
-          <div key={index} className="border-b border-white/10">
+          <div key={index} className="border-t border-white/[0.08]">
             <button
               type="button"
               onClick={() => toggle(index)}
-              className="flex w-full cursor-pointer items-center justify-between py-7 text-left"
+              className="flex w-full cursor-pointer items-center justify-between py-8 text-left transition-colors duration-200"
             >
-              <span className="pr-8 text-[15px] font-semibold leading-[1.4] tracking-[-0.3px] text-white md:text-[17px]">
+              <span className="pr-12 text-[15px] font-normal leading-[1.4] text-white/80 md:text-[17px]">
                 {item.question}
               </span>
               <span
-                className="shrink-0 text-[20px] font-light text-white/35 transition-transform duration-200"
-                style={{
-                  transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
-                }}
-                aria-hidden
+                className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25 transition-all duration-200"
               >
-                +
+                {isOpen ? "Close" : "Open"}
               </span>
             </button>
             <div
-              className="overflow-hidden transition-all duration-200"
+              className="overflow-hidden transition-all duration-300 ease-out"
               style={{
                 maxHeight: isOpen ? "200px" : "0px",
                 opacity: isOpen ? 1 : 0,
               }}
             >
-              <p className="pb-7 text-[14px] font-medium leading-[1.65] tracking-[-0.2px] text-white/50">
+              <p className="pb-8 text-[14px] font-normal leading-[1.7] text-white/35">
                 {item.answer}
               </p>
             </div>
           </div>
         );
       })}
+      <div className="border-t border-white/[0.08]" />
     </div>
   );
 }

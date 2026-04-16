@@ -1,31 +1,30 @@
 export default function PartnerHero() {
   return (
-    <section className="relative bg-[#111] px-6 pb-32 pt-20 md:px-12 md:pb-48 md:pt-32 lg:px-20">
-      <div className="mx-auto max-w-[1400px]">
-        <div className="flex items-baseline justify-between text-[11px] font-semibold uppercase tracking-[0.08em] text-white/35">
-          <span>Studio Partner Program</span>
-          <span>2026</span>
-        </div>
-
-        <h1 className="mt-16 max-w-[1200px] text-[44px] font-semibold leading-[0.95] tracking-[-2px] text-white md:mt-24 md:text-[76px] md:tracking-[-4px] lg:text-[104px] lg:tracking-[-5px]">
-          Qualquer um entrega{" "}
-          <span className="text-white/30">&mdash;</span>
-          <br className="hidden md:block" />
-          nem todos entregam o n&iacute;vel que o cliente mostra pra todo mundo.
+    <section className="relative bg-black px-5 pb-40 pt-24 md:px-10 md:pb-56 md:pt-36 lg:px-16">
+      <div className="mx-auto max-w-[1440px]">
+        <h1 className="text-[11vw] font-semibold uppercase leading-[0.88] tracking-[-0.04em] text-white md:text-[8.5vw] lg:text-[120px]">
+          Qualquer um
+          <br />
+          entrega <span className="text-white/20">/</span>
+          <br />
+          nem todos
+          <br />
+          entregam o n&iacute;vel
         </h1>
 
-        <div className="mt-16 flex flex-col gap-8 md:mt-24 md:flex-row md:items-end md:justify-between">
-          <p className="max-w-[480px] text-[15px] font-medium leading-[1.6] tracking-[-0.2px] text-white/50">
-            UI/UX e desenvolvimento nos bastidores do seu projeto.
-            <br />
-            Com o seu nome na frente.
+        <div className="mt-20 flex flex-col justify-between gap-10 md:mt-32 md:flex-row md:items-end">
+          <p className="max-w-[440px] text-[15px] font-normal leading-[1.65] text-white/45">
+            UI/UX e desenvolvimento nos bastidores do seu projeto. Com o seu
+            nome na frente. O resultado &eacute; seu. O cr&eacute;dito &eacute;
+            seu. O padr&atilde;o &eacute; nosso.
           </p>
+
           <a
-            href="#como-funciona"
-            className="inline-flex cursor-pointer items-center gap-3 border border-white/25 px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-white transition-colors hover:border-white hover:bg-white hover:text-black"
+            href="#calculator"
+            className="group inline-flex cursor-pointer items-center gap-4 border border-white/20 px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
           >
             Ver como funciona
-            <span aria-hidden className="text-white/40">
+            <span className="transition-transform duration-300 group-hover:translate-y-0.5">
               &darr;
             </span>
           </a>

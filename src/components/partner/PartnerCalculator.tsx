@@ -4,14 +4,14 @@ import { useState, useMemo, useCallback } from "react";
 
 const PROJECT_TYPES = [
   { value: "landing", label: "Landing Page", price: 1500 },
-  { value: "site5", label: "Site at\u00e9 5 p\u00e1ginas", price: 3500 },
+  { value: "site5", label: "Site at\u00e9 5 p\u00e1g.", price: 3500 },
   { value: "ecommerce", label: "E-commerce UI", price: 5000 },
 ];
 
 const SCOPES = [
   { value: "design", label: "S\u00f3 design", multiplier: 1, includesDev: false },
   { value: "design_dev", label: "Design + Dev", multiplier: 1.6, includesDev: true },
-  { value: "dev_only", label: "Dev em cima de design pronto", multiplier: 1.35, includesDev: true },
+  { value: "dev_only", label: "Dev sobre design pronto", multiplier: 1.35, includesDev: true },
 ];
 
 const INTEGRATIONS = [
@@ -28,7 +28,7 @@ const PRIORITIES = [
   { value: "urgent", label: "Urgente", multiplier: 1.6 },
 ];
 
-function formatBRL(value: number): string {
+function brl(value: number): string {
   return value.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -40,32 +40,52 @@ function Pill({
   label,
   active,
   onClick,
-  checkbox,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
-  checkbox?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex cursor-pointer items-center gap-2 border px-4 py-3 text-[12px] font-medium tracking-[-0.15px] transition-colors ${
+      className={`cursor-pointer border px-5 py-3 text-[12px] font-normal tracking-[0.02em] transition-all duration-200 ${
         active
           ? "border-white bg-white text-black"
-          : "border-white/15 text-white/70 hover:border-white/40"
+          : "border-white/[0.08] text-white/50 hover:border-white/25 hover:text-white/80"
       }`}
     >
-      {checkbox && (
-        <span
-          className={`inline-flex h-[10px] w-[10px] items-center justify-center border text-[7px] leading-none ${
-            active ? "border-black/40 text-black" : "border-white/30"
-          }`}
-        >
-          {active ? "\u2713" : ""}
-        </span>
-      )}
+      {label}
+    </button>
+  );
+}
+
+function Check({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex cursor-pointer items-center gap-3 border px-4 py-3 text-[12px] font-normal tracking-[0.02em] transition-all duration-200 ${
+        active
+          ? "border-white bg-white text-black"
+          : "border-white/[0.08] text-white/50 hover:border-white/25 hover:text-white/80"
+      }`}
+    >
+      <span
+        className={`flex h-[10px] w-[10px] items-center justify-center border text-[7px] leading-none ${
+          active ? "border-black/30 text-black" : "border-white/20"
+        }`}
+      >
+        {active ? "\u2713" : ""}
+      </span>
       {label}
     </button>
   );
@@ -77,56 +97,56 @@ export default function PartnerCalculator() {
   const [integrations, setIntegrations] = useState<string[]>([]);
   const [priority, setPriority] = useState("standard");
 
-  const selectedProject = PROJECT_TYPES.find((p) => p.value === projectType)!;
-  const selectedScope = SCOPES.find((s) => s.value === scope)!;
-  const selectedPriority = PRIORITIES.find((p) => p.value === priority)!;
+  const proj = PROJECT_TYPES.find((p) => p.value === projectType)!;
+  const scp = SCOPES.find((s) => s.value === scope)!;
+  const pri = PRIORITIES.find((p) => p.value === priority)!;
 
-  const toggleIntegration = useCallback((value: string) => {
+  const toggle = useCallback((v: string) => {
     setIntegrations((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
     );
   }, []);
 
   const { total, breakdown, entry, delivery } = useMemo(() => {
-    const base = selectedProject.price * selectedScope.multiplier;
-    const intTotal = selectedScope.includesDev
+    const base = proj.price * scp.multiplier;
+    const intTotal = scp.includesDev
       ? integrations.reduce((sum, key) => {
-          const found = INTEGRATIONS.find((i) => i.value === key);
-          return sum + (found?.price ?? 0);
+          const f = INTEGRATIONS.find((i) => i.value === key);
+          return sum + (f?.price ?? 0);
         }, 0)
       : 0;
-    const subtotal = base + intTotal;
-    const finalTotal = Math.round(subtotal * selectedPriority.multiplier);
+    const sub = base + intTotal;
+    const final_ = Math.round(sub * pri.multiplier);
 
-    const parts: string[] = [selectedProject.label, selectedScope.label];
-    if (selectedScope.includesDev && integrations.length > 0) {
+    const parts: string[] = [proj.label, scp.label];
+    if (scp.includesDev && integrations.length > 0) {
       integrations.forEach((key) => {
-        const found = INTEGRATIONS.find((i) => i.value === key);
-        if (found) parts.push(found.label);
+        const f = INTEGRATIONS.find((i) => i.value === key);
+        if (f) parts.push(f.label);
       });
     }
-    if (selectedPriority.value !== "standard") parts.push(selectedPriority.label);
+    if (pri.value !== "standard") parts.push(pri.label);
 
     return {
-      total: finalTotal,
+      total: final_,
       breakdown: parts.join(" + "),
-      entry: Math.round(finalTotal * 0.6),
-      delivery: Math.round(finalTotal * 0.4),
+      entry: Math.round(final_ * 0.6),
+      delivery: Math.round(final_ * 0.4),
     };
-  }, [selectedProject, selectedScope, selectedPriority, integrations]);
+  }, [proj, scp, pri, integrations]);
 
   return (
-    <div className="grid gap-16 lg:grid-cols-[1fr_360px]">
-      <div className="space-y-14">
+    <div className="grid gap-20 lg:grid-cols-[1fr_380px]">
+      <div className="space-y-16">
         <div>
-          <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/35">
+          <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
             Tipo de projeto
           </p>
           <div className="flex flex-wrap gap-2">
             {PROJECT_TYPES.map((opt) => (
               <Pill
                 key={opt.value}
-                label={`${opt.label} \u2014 ${formatBRL(opt.price)}`}
+                label={`${opt.label} \u2014 ${brl(opt.price)}`}
                 active={projectType === opt.value}
                 onClick={() => setProjectType(opt.value)}
               />
@@ -135,7 +155,7 @@ export default function PartnerCalculator() {
         </div>
 
         <div>
-          <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/35">
+          <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
             Escopo de entrega
           </p>
           <div className="flex flex-wrap gap-2">
@@ -150,19 +170,18 @@ export default function PartnerCalculator() {
           </div>
         </div>
 
-        {selectedScope.includesDev && (
+        {scp.includesDev && (
           <div>
-            <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/35">
+            <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
               Integra&ccedil;&otilde;es
             </p>
             <div className="flex flex-wrap gap-2">
               {INTEGRATIONS.map((opt) => (
-                <Pill
+                <Check
                   key={opt.value}
-                  label={`${opt.label} +${formatBRL(opt.price)}`}
+                  label={`${opt.label} +${brl(opt.price)}`}
                   active={integrations.includes(opt.value)}
-                  onClick={() => toggleIntegration(opt.value)}
-                  checkbox
+                  onClick={() => toggle(opt.value)}
                 />
               ))}
             </div>
@@ -170,7 +189,7 @@ export default function PartnerCalculator() {
         )}
 
         <div>
-          <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/35">
+          <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
             Prioridade
           </p>
           <div className="flex flex-wrap gap-2">
@@ -186,25 +205,28 @@ export default function PartnerCalculator() {
         </div>
       </div>
 
-      <div className="lg:sticky lg:top-12 lg:self-start">
-        <div className="border-l-2 border-white pl-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/35">
+      <div className="lg:sticky lg:top-16 lg:self-start">
+        <div className="border-l border-white/[0.08] pl-8">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
             Estimativa
           </p>
-          <p className="mt-4 text-[38px] font-semibold leading-[1] tracking-[-1.8px] text-white md:text-[46px]">
-            {formatBRL(total)}
+
+          <p className="mt-6 text-[52px] font-semibold leading-[1] tracking-[-0.03em] text-white md:text-[64px]">
+            {brl(total)}
           </p>
-          <p className="mt-5 text-[13px] font-medium leading-[1.5] tracking-[-0.2px] text-white/40">
+
+          <p className="mt-6 text-[13px] font-normal leading-[1.6] text-white/30">
             {breakdown}
           </p>
-          <div className="mt-8 space-y-3 border-t border-white/10 pt-6">
-            <div className="flex justify-between text-[13px] tracking-[-0.2px]">
-              <span className="font-medium text-white/50">Entrada (60%)</span>
-              <span className="font-semibold text-white">{formatBRL(entry)}</span>
+
+          <div className="mt-10 space-y-4 border-t border-white/[0.08] pt-8">
+            <div className="flex justify-between text-[13px]">
+              <span className="font-normal text-white/30">Entrada (60%)</span>
+              <span className="font-semibold text-white">{brl(entry)}</span>
             </div>
-            <div className="flex justify-between text-[13px] tracking-[-0.2px]">
-              <span className="font-medium text-white/50">Na entrega (40%)</span>
-              <span className="font-semibold text-white">{formatBRL(delivery)}</span>
+            <div className="flex justify-between text-[13px]">
+              <span className="font-normal text-white/30">Na entrega (40%)</span>
+              <span className="font-semibold text-white">{brl(delivery)}</span>
             </div>
           </div>
         </div>

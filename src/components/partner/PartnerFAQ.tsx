@@ -2,12 +2,7 @@
 
 import { useState, useCallback } from "react";
 
-interface FAQItem {
-  question: string;
-  answer: string;
-}
-
-const FAQ_ITEMS: FAQItem[] = [
+const FAQ_ITEMS = [
   {
     question: "O que precisa estar pronto antes de acionar?",
     answer:
@@ -37,27 +32,26 @@ const FAQ_ITEMS: FAQItem[] = [
 
 export default function PartnerFAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-
   const toggle = useCallback((index: number) => {
     setOpenIndex((prev) => (prev === index ? null : index));
   }, []);
 
   return (
-    <div className="space-y-0">
+    <div>
       {FAQ_ITEMS.map((item, index) => {
         const isOpen = openIndex === index;
         return (
-          <div key={index} className="border-b border-black/10">
+          <div key={index} className="border-b border-white/10">
             <button
               type="button"
               onClick={() => toggle(index)}
-              className="flex w-full cursor-pointer items-center justify-between py-6 text-left"
+              className="flex w-full cursor-pointer items-center justify-between py-7 text-left"
             >
-              <span className="pr-8 text-[15px] font-semibold leading-[1.4] tracking-[-0.3px] text-black md:text-[16px]">
+              <span className="pr-8 text-[15px] font-semibold leading-[1.4] tracking-[-0.3px] text-white md:text-[17px]">
                 {item.question}
               </span>
               <span
-                className="shrink-0 text-[18px] text-black/40 transition-transform duration-200"
+                className="shrink-0 text-[20px] font-light text-white/35 transition-transform duration-200"
                 style={{
                   transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
                 }}
@@ -73,7 +67,7 @@ export default function PartnerFAQ() {
                 opacity: isOpen ? 1 : 0,
               }}
             >
-              <p className="pb-6 text-[14px] font-medium leading-[1.6] tracking-[-0.2px] text-black/60">
+              <p className="pb-7 text-[14px] font-medium leading-[1.65] tracking-[-0.2px] text-white/50">
                 {item.answer}
               </p>
             </div>

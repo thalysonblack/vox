@@ -1,31 +1,35 @@
 export default function PartnerHero() {
   return (
-    <section className="bg-[#111] px-6 py-24 text-white md:px-12 md:py-32 lg:px-20 lg:py-40">
-      <div className="mx-auto max-w-[1200px]">
-        <div className="flex items-baseline gap-3 text-[12px] font-semibold uppercase tracking-[-0.42px] text-white/55">
-          <span>Partner /</span>
-          <span className="text-white/40">studio.2026</span>
+    <section className="relative bg-[#111] px-6 pb-32 pt-20 md:px-12 md:pb-48 md:pt-32 lg:px-20">
+      <div className="mx-auto max-w-[1400px]">
+        <div className="flex items-baseline justify-between text-[11px] font-semibold uppercase tracking-[0.08em] text-white/35">
+          <span>Studio Partner Program</span>
+          <span>2026</span>
         </div>
 
-        <h1 className="mt-10 max-w-[900px] text-[36px] font-semibold leading-[1.05] tracking-[-1.6px] text-white md:text-[56px] md:tracking-[-2.8px] lg:text-[64px] lg:tracking-[-3.2px]">
-          Qualquer um entrega. Nem todos entregam o n&iacute;vel que o cliente
-          mostra pra todo mundo.
+        <h1 className="mt-16 max-w-[1200px] text-[44px] font-semibold leading-[0.95] tracking-[-2px] text-white md:mt-24 md:text-[76px] md:tracking-[-4px] lg:text-[104px] lg:tracking-[-5px]">
+          Qualquer um entrega{" "}
+          <span className="text-white/30">&mdash;</span>
+          <br className="hidden md:block" />
+          nem todos entregam o n&iacute;vel que o cliente mostra pra todo mundo.
         </h1>
 
-        <p className="mt-8 max-w-[560px] text-[14px] font-medium leading-[1.6] tracking-[-0.2px] text-white/60">
-          UI/UX e desenvolvimento nos bastidores do seu projeto. Com o seu nome
-          na frente.
-        </p>
-
-        <a
-          href="#como-funciona"
-          className="mt-10 inline-flex cursor-pointer items-center gap-4 border border-white bg-white px-8 py-4 text-[12px] font-semibold uppercase tracking-[-0.42px] text-black transition-colors hover:bg-transparent hover:text-white"
-        >
-          Ver como funciona
-          <span aria-hidden className="text-[14px]">
-            &#8595;
-          </span>
-        </a>
+        <div className="mt-16 flex flex-col gap-8 md:mt-24 md:flex-row md:items-end md:justify-between">
+          <p className="max-w-[480px] text-[15px] font-medium leading-[1.6] tracking-[-0.2px] text-white/50">
+            UI/UX e desenvolvimento nos bastidores do seu projeto.
+            <br />
+            Com o seu nome na frente.
+          </p>
+          <a
+            href="#como-funciona"
+            className="inline-flex cursor-pointer items-center gap-3 border border-white/25 px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-white transition-colors hover:border-white hover:bg-white hover:text-black"
+          >
+            Ver como funciona
+            <span aria-hidden className="text-white/40">
+              &darr;
+            </span>
+          </a>
+        </div>
       </div>
     </section>
   );

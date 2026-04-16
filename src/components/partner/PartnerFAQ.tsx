@@ -41,18 +41,16 @@ export default function PartnerFAQ() {
       {FAQ_ITEMS.map((item, index) => {
         const isOpen = openIndex === index;
         return (
-          <div key={index} className="border-t border-white/[0.08]">
+          <div key={index} className="border-t border-white/[0.06]">
             <button
               type="button"
               onClick={() => toggle(index)}
-              className="flex w-full cursor-pointer items-center justify-between py-8 text-left transition-colors duration-200"
+              className="group flex w-full cursor-pointer items-center justify-between gap-8 py-7 text-left"
             >
-              <span className="pr-12 text-[15px] font-normal leading-[1.4] text-white/80 md:text-[17px]">
+              <span className="text-[16px] font-normal leading-[1.45] text-white/70 transition-colors duration-200 group-hover:text-white">
                 {item.question}
               </span>
-              <span
-                className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25 transition-all duration-200"
-              >
+              <span className="shrink-0 text-[12px] font-medium uppercase tracking-[0.1em] text-white/20 transition-colors duration-200 group-hover:text-white/40">
                 {isOpen ? "Close" : "Open"}
               </span>
             </button>
@@ -63,14 +61,14 @@ export default function PartnerFAQ() {
                 opacity: isOpen ? 1 : 0,
               }}
             >
-              <p className="pb-8 text-[14px] font-normal leading-[1.7] text-white/35">
+              <p className="pb-8 text-[15px] font-normal leading-[1.7] text-white/30">
                 {item.answer}
               </p>
             </div>
           </div>
         );
       })}
-      <div className="border-t border-white/[0.08]" />
+      <div className="border-t border-white/[0.06]" />
     </div>
   );
 }

@@ -40,52 +40,32 @@ function Pill({
   label,
   active,
   onClick,
+  hasCheck,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  hasCheck?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`cursor-pointer border px-5 py-3 text-[12px] font-normal tracking-[0.02em] transition-all duration-200 ${
+      className={`group flex cursor-pointer items-center gap-3 border px-5 py-3 text-[13px] font-normal transition-all duration-200 ${
         active
           ? "border-white bg-white text-black"
-          : "border-white/[0.08] text-white/50 hover:border-white/25 hover:text-white/80"
+          : "border-white/[0.08] text-white/45 hover:border-white/20 hover:text-white/70"
       }`}
     >
-      {label}
-    </button>
-  );
-}
-
-function Check({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex cursor-pointer items-center gap-3 border px-4 py-3 text-[12px] font-normal tracking-[0.02em] transition-all duration-200 ${
-        active
-          ? "border-white bg-white text-black"
-          : "border-white/[0.08] text-white/50 hover:border-white/25 hover:text-white/80"
-      }`}
-    >
-      <span
-        className={`flex h-[10px] w-[10px] items-center justify-center border text-[7px] leading-none ${
-          active ? "border-black/30 text-black" : "border-white/20"
-        }`}
-      >
-        {active ? "\u2713" : ""}
-      </span>
+      {hasCheck && (
+        <span
+          className={`flex h-[10px] w-[10px] shrink-0 items-center justify-center border text-[7px] leading-none ${
+            active ? "border-black/30 text-black" : "border-white/15"
+          }`}
+        >
+          {active ? "\u2713" : ""}
+        </span>
+      )}
       {label}
     </button>
   );
@@ -116,7 +96,7 @@ export default function PartnerCalculator() {
         }, 0)
       : 0;
     const sub = base + intTotal;
-    const final_ = Math.round(sub * pri.multiplier);
+    const fin = Math.round(sub * pri.multiplier);
 
     const parts: string[] = [proj.label, scp.label];
     if (scp.includesDev && integrations.length > 0) {
@@ -128,109 +108,107 @@ export default function PartnerCalculator() {
     if (pri.value !== "standard") parts.push(pri.label);
 
     return {
-      total: final_,
+      total: fin,
       breakdown: parts.join(" + "),
-      entry: Math.round(final_ * 0.6),
-      delivery: Math.round(final_ * 0.4),
+      entry: Math.round(fin * 0.6),
+      delivery: Math.round(fin * 0.4),
     };
   }, [proj, scp, pri, integrations]);
 
   return (
     <div className="grid gap-20 lg:grid-cols-[1fr_380px]">
       <div className="space-y-16">
-        <div>
-          <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
-            Tipo de projeto
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {PROJECT_TYPES.map((opt) => (
-              <Pill
-                key={opt.value}
-                label={`${opt.label} \u2014 ${brl(opt.price)}`}
-                active={projectType === opt.value}
-                onClick={() => setProjectType(opt.value)}
-              />
-            ))}
-          </div>
-        </div>
+        <Group label="Tipo de projeto">
+          {PROJECT_TYPES.map((opt) => (
+            <Pill
+              key={opt.value}
+              label={`${opt.label} \u2014 ${brl(opt.price)}`}
+              active={projectType === opt.value}
+              onClick={() => setProjectType(opt.value)}
+            />
+          ))}
+        </Group>
 
-        <div>
-          <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
-            Escopo de entrega
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {SCOPES.map((opt) => (
-              <Pill
-                key={opt.value}
-                label={opt.label}
-                active={scope === opt.value}
-                onClick={() => setScope(opt.value)}
-              />
-            ))}
-          </div>
-        </div>
+        <Group label="Escopo de entrega">
+          {SCOPES.map((opt) => (
+            <Pill
+              key={opt.value}
+              label={opt.label}
+              active={scope === opt.value}
+              onClick={() => setScope(opt.value)}
+            />
+          ))}
+        </Group>
 
         {scp.includesDev && (
-          <div>
-            <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
-              Integra&ccedil;&otilde;es
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {INTEGRATIONS.map((opt) => (
-                <Check
-                  key={opt.value}
-                  label={`${opt.label} +${brl(opt.price)}`}
-                  active={integrations.includes(opt.value)}
-                  onClick={() => toggle(opt.value)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div>
-          <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
-            Prioridade
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {PRIORITIES.map((opt) => (
+          <Group label="Integra&ccedil;&otilde;es">
+            {INTEGRATIONS.map((opt) => (
               <Pill
                 key={opt.value}
-                label={opt.label}
-                active={priority === opt.value}
-                onClick={() => setPriority(opt.value)}
+                label={`${opt.label} +${brl(opt.price)}`}
+                active={integrations.includes(opt.value)}
+                onClick={() => toggle(opt.value)}
+                hasCheck
               />
             ))}
-          </div>
-        </div>
+          </Group>
+        )}
+
+        <Group label="Prioridade">
+          {PRIORITIES.map((opt) => (
+            <Pill
+              key={opt.value}
+              label={opt.label}
+              active={priority === opt.value}
+              onClick={() => setPriority(opt.value)}
+            />
+          ))}
+        </Group>
       </div>
 
       <div className="lg:sticky lg:top-16 lg:self-start">
-        <div className="border-l border-white/[0.08] pl-8">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/25">
+        <div className="border-l border-white/[0.06] pl-8">
+          <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-white/25">
             Estimativa
           </p>
 
-          <p className="mt-6 text-[52px] font-semibold leading-[1] tracking-[-0.03em] text-white md:text-[64px]">
+          <p className="mt-8 text-[56px] font-medium leading-[1] tracking-[-0.04em] text-white lg:text-[64px]">
             {brl(total)}
           </p>
 
-          <p className="mt-6 text-[13px] font-normal leading-[1.6] text-white/30">
+          <p className="mt-6 text-[14px] font-normal leading-[1.6] text-white/25">
             {breakdown}
           </p>
 
-          <div className="mt-10 space-y-4 border-t border-white/[0.08] pt-8">
-            <div className="flex justify-between text-[13px]">
-              <span className="font-normal text-white/30">Entrada (60%)</span>
-              <span className="font-semibold text-white">{brl(entry)}</span>
+          <div className="mt-10 space-y-4 border-t border-white/[0.06] pt-8">
+            <div className="flex justify-between text-[14px]">
+              <span className="font-normal text-white/25">Entrada (60%)</span>
+              <span className="font-medium text-white">{brl(entry)}</span>
             </div>
-            <div className="flex justify-between text-[13px]">
-              <span className="font-normal text-white/30">Na entrega (40%)</span>
-              <span className="font-semibold text-white">{brl(delivery)}</span>
+            <div className="flex justify-between text-[14px]">
+              <span className="font-normal text-white/25">Na entrega (40%)</span>
+              <span className="font-medium text-white">{brl(delivery)}</span>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Group({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="mb-6 text-[12px] font-medium uppercase tracking-[0.1em] text-white/25">
+        {label}
+      </p>
+      <div className="flex flex-wrap gap-2">{children}</div>
     </div>
   );
 }

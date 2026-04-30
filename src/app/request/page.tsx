@@ -29,10 +29,10 @@ export default async function RequestPage() {
 
       {/* Form content — inner max-width for comfortable reading line
           length, not tied to the nav container width. */}
-      <main className="px-3 pt-16 pb-20 md:pt-24 md:pb-28">
+      <main className="px-3 pt-12 pb-16 md:pt-24 md:pb-28">
         <div className="mx-auto w-full max-w-[1200px]">
           <RequestHero />
-          <div className="mt-16 md:mt-24">
+          <div className="mt-10 md:mt-24">
             <RequestForm />
           </div>
         </div>

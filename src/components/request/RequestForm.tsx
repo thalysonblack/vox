@@ -447,12 +447,12 @@ export default function RequestForm() {
           você pode baixar em PDF para arquivar.
         </p>
 
-        <div className="print-hide mt-8 flex flex-wrap gap-3">
+        <div className="print-hide mt-8 flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
             onClick={downloadPDF}
             disabled={pdfGenerating}
-            className="inline-flex cursor-pointer items-center gap-3 border border-black bg-black px-6 py-3 text-[11px] font-semibold uppercase tracking-[-0.35px] text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex w-full cursor-pointer items-center justify-between gap-3 border border-black bg-black px-6 py-4 text-[11px] font-semibold uppercase tracking-[-0.35px] text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start sm:py-3"
           >
             {pdfGenerating ? "Gerando…" : "Baixar PDF"}
             <span aria-hidden>↓</span>
@@ -463,7 +463,7 @@ export default function RequestForm() {
               setSummary(null);
               setStatus("idle");
             }}
-            className="inline-flex cursor-pointer items-center gap-3 border border-black/20 px-6 py-3 text-[11px] font-semibold uppercase tracking-[-0.35px] text-black transition-colors hover:border-black"
+            className="inline-flex w-full cursor-pointer items-center justify-between gap-3 border border-black/20 px-6 py-4 text-[11px] font-semibold uppercase tracking-[-0.35px] text-black transition-colors hover:border-black sm:w-auto sm:justify-start sm:py-3"
           >
             Enviar outro briefing
             <span aria-hidden>→</span>
@@ -835,16 +835,16 @@ export default function RequestForm() {
       </FormSection>
 
       <FormSection index="06" title="Exploração criativa">
-        <div className="space-y-3">
+        <div className="space-y-2">
           {CREATIVE_LEVELS.map((lvl) => {
             const active = form.creativeLevel === lvl.value;
             return (
               <label
                 key={lvl.value}
-                className={`flex cursor-pointer items-start gap-4 border-l-2 py-3 pl-4 transition-colors ${
+                className={`flex cursor-pointer items-start gap-4 border px-4 py-4 transition-colors ${
                   active
-                    ? "border-black bg-black/[0.03]"
-                    : "border-black/10 hover:border-black/30"
+                    ? "border-black bg-black text-white"
+                    : "border-black/15 text-black hover:border-black/40"
                 }`}
               >
                 <input
@@ -855,11 +855,12 @@ export default function RequestForm() {
                   onChange={() => update("creativeLevel", lvl.value)}
                   className="sr-only"
                 />
+                <RadioDot active={active} />
                 <div>
-                  <p className="text-[14px] font-semibold tracking-[-0.4px] text-black">
+                  <p className={`text-[14px] font-semibold tracking-[-0.4px] ${active ? "text-white" : "text-black"}`}>
                     {lvl.label}
                   </p>
-                  <p className="mt-1 text-[12px] font-medium leading-[1.4] tracking-[-0.2px] text-black/55">
+                  <p className={`mt-1 text-[12px] font-medium leading-[1.4] tracking-[-0.2px] ${active ? "text-white/70" : "text-black/55"}`}>
                     {lvl.hint}
                   </p>
                 </div>
@@ -946,7 +947,7 @@ export default function RequestForm() {
         />
       </FormSection>
 
-      <div className="flex flex-col gap-4 pt-10 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 pt-8 md:flex-row md:items-center md:justify-between md:pt-10">
         <p className="max-w-[420px] text-[12px] font-medium leading-[1.5] tracking-[-0.2px] text-black/50">
           Ao enviar, o briefing entra direto no nosso board. Respondemos por
           email em até 48h úteis.
@@ -954,7 +955,7 @@ export default function RequestForm() {
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="group inline-flex cursor-pointer items-center justify-between gap-6 border border-black bg-black px-8 py-5 text-[12px] font-semibold uppercase tracking-[-0.42px] text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50 md:min-w-[320px]"
+          className="group inline-flex w-full cursor-pointer items-center justify-between gap-6 border border-black bg-black px-8 py-5 text-[12px] font-semibold uppercase tracking-[-0.42px] text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50 md:w-auto md:min-w-[320px]"
         >
           {status === "submitting" ? "Enviando…" : "Enviar briefing"}
           <span aria-hidden className="transition-transform group-hover:translate-x-1">
@@ -984,30 +985,30 @@ function FormSection({
   children: ReactNode;
 }) {
   return (
-    <section className="grid gap-8 py-12 md:grid-cols-[160px_1fr] md:gap-10">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[-0.35px] text-black/40">
+    <section className="grid gap-5 py-8 md:grid-cols-[160px_1fr] md:gap-10 md:py-12">
+      <div className="flex items-baseline gap-2 md:block">
+        <p className="shrink-0 text-[11px] font-semibold uppercase tracking-[-0.35px] text-black/40">
           {index}
         </p>
-        <p className="mt-2 text-[14px] font-semibold leading-[1.25] tracking-[-0.4px] text-black">
+        <p className="text-[14px] font-semibold leading-[1.25] tracking-[-0.4px] text-black md:mt-2">
           {title}
           {required && <span className="ml-1 text-black/40">*</span>}
         </p>
       </div>
-      <div className="space-y-8">{children}</div>
+      <div className="space-y-6 md:space-y-8">{children}</div>
     </section>
   );
 }
 
 function FieldRow({ children }: { children: ReactNode }) {
   return (
-    <div className="grid gap-8 md:grid-cols-2 md:gap-10">{children}</div>
+    <div className="grid gap-5 md:grid-cols-2 md:gap-10">{children}</div>
   );
 }
 
 function SubGroup({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-6 space-y-8 border-l border-black/10 pl-6">
+    <div className="mt-6 space-y-6 border-l border-black/10 pl-4 md:space-y-8 md:pl-6">
       {children}
     </div>
   );
@@ -1048,8 +1049,25 @@ function TextField({
 
 function InfoTip({ text }: { text: string }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
+  }, [open]);
+
   return (
-    <span className="relative inline-flex">
+    <span ref={ref} className="relative inline-flex">
       <button
         type="button"
         aria-label="Mais informações"
@@ -1064,7 +1082,7 @@ function InfoTip({ text }: { text: string }) {
         i
       </button>
       {open && (
-        <span className="absolute left-1/2 top-[22px] z-20 w-[240px] -translate-x-1/2 border border-black/15 bg-white p-3 text-[11px] font-medium normal-case leading-[1.45] tracking-[-0.15px] text-black/70 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+        <span className="absolute left-0 top-[22px] z-20 w-[220px] border border-black/15 bg-white p-3 text-[11px] font-medium normal-case leading-[1.45] tracking-[-0.15px] text-black/70 shadow-[0_8px_24px_rgba(0,0,0,0.08)] sm:left-1/2 sm:w-[240px] sm:-translate-x-1/2">
           {text}
         </span>
       )}
@@ -1123,13 +1141,13 @@ function RadioGrid({
           Escolha uma
         </span>
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 md:gap-3">
         {options.map((opt) => {
           const active = value === opt.value;
           return (
             <label
               key={opt.value}
-              className={`flex cursor-pointer items-center gap-3 border px-4 py-4 text-[13px] font-medium tracking-[-0.2px] transition-colors ${
+              className={`flex cursor-pointer items-start gap-2 border px-3 py-3 text-[13px] font-medium leading-[1.3] tracking-[-0.2px] transition-colors md:gap-3 md:px-4 md:py-4 ${
                 active
                   ? "border-black bg-black text-white"
                   : "border-black/15 text-black hover:border-black/40"
@@ -1233,7 +1251,7 @@ function RadioList({
           return (
             <label
               key={opt}
-              className={`flex cursor-pointer items-center gap-2 border px-3 py-2 text-[12px] font-medium tracking-[-0.2px] transition-colors ${
+              className={`flex cursor-pointer items-center gap-2 border px-3 py-[10px] text-[12px] font-medium tracking-[-0.2px] transition-colors ${
                 active
                   ? "border-black bg-black text-white"
                   : "border-black/15 text-black hover:border-black/40"
@@ -1277,7 +1295,7 @@ function CheckboxList({
           return (
             <label
               key={opt}
-              className={`flex cursor-pointer items-center gap-2 border px-3 py-2 text-[12px] font-medium tracking-[-0.2px] transition-colors ${
+              className={`flex cursor-pointer items-center gap-2 border px-3 py-[10px] text-[12px] font-medium tracking-[-0.2px] transition-colors ${
                 active
                   ? "border-black bg-black text-white"
                   : "border-black/15 text-black hover:border-black/40"
@@ -1385,7 +1403,7 @@ function LinkList({
       <span className="text-[11px] font-semibold uppercase tracking-[-0.35px] text-black/55">
         {label}
       </span>
-      <div className="flex items-end gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3">
         <input
           type="text"
           value={draft}
@@ -1402,7 +1420,7 @@ function LinkList({
         <button
           type="button"
           onClick={commit}
-          className="shrink-0 cursor-pointer border border-black px-4 py-2 text-[11px] font-semibold uppercase tracking-[-0.35px] text-black transition-colors hover:bg-black hover:text-white"
+          className="cursor-pointer border border-black px-4 py-[10px] text-[11px] font-semibold uppercase tracking-[-0.35px] text-black transition-colors hover:bg-black hover:text-white sm:shrink-0"
         >
           + Adicionar
         </button>
@@ -1498,7 +1516,7 @@ function FileDrop({
           setDragOver(false);
           onAdd(e.dataTransfer.files);
         }}
-        className={`flex cursor-pointer flex-col items-center justify-center border border-dashed px-6 py-10 text-center transition-colors ${
+        className={`flex cursor-pointer flex-col items-center justify-center border border-dashed px-6 py-8 text-center transition-colors md:py-10 ${
           dragOver
             ? "border-black bg-black/[0.03]"
             : "border-black/25 hover:border-black/50"
@@ -1513,7 +1531,7 @@ function FileDrop({
         />
         <span className="text-[13px] font-semibold tracking-[-0.3px] text-black">
           Clique para carregar
-          <span className="ml-1 font-medium text-black/50">
+          <span className="ml-1 hidden font-medium text-black/50 sm:inline">
             ou arraste e solte
           </span>
         </span>
@@ -1582,84 +1600,17 @@ function DateField({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const display = value
-    ? new Date(`${value}T00:00:00`).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      })
-    : "Selecionar data";
-
-  const openPicker = () => {
-    const el = inputRef.current;
-    if (!el) return;
-    if (typeof el.showPicker === "function") {
-      try {
-        el.showPicker();
-        return;
-      } catch {
-        /* fallback to focus */
-      }
-    }
-    el.focus();
-  };
-
   return (
     <div className="flex flex-col gap-2">
       <span className="text-[11px] font-semibold uppercase tracking-[-0.35px] text-black/55">
         {label}
       </span>
-      <button
-        type="button"
-        onClick={openPicker}
-        className="group relative flex cursor-pointer items-center justify-between gap-3 border-b border-black/20 py-2 text-left transition-colors hover:border-black/60 focus:border-black focus-visible:outline-none"
-      >
-        <span
-          className={`text-[14px] font-medium tracking-[-0.2px] transition-colors ${
-            value ? "text-black" : "text-black/35"
-          }`}
-        >
-          {display}
-        </span>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          className="text-black/45 transition-colors group-hover:text-black"
-        >
-          <rect
-            x="1.5"
-            y="2.5"
-            width="11"
-            height="10"
-            stroke="currentColor"
-            strokeWidth="1.2"
-          />
-          <path
-            d="M1.5 5.5H12.5"
-            stroke="currentColor"
-            strokeWidth="1.2"
-          />
-          <path
-            d="M4.5 1.5V3.5M9.5 1.5V3.5"
-            stroke="currentColor"
-            strokeWidth="1.2"
-            strokeLinecap="round"
-          />
-        </svg>
-        <input
-          ref={inputRef}
-          type="date"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
-          tabIndex={-1}
-          aria-hidden
-        />
-      </button>
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full border-b border-black/20 bg-transparent py-2 text-[14px] font-medium tracking-[-0.2px] text-black outline-none transition-colors [color-scheme:light] focus:border-black focus-visible:outline-none"
+      />
       {value && (
         <button
           type="button"

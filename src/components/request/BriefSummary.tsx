@@ -283,13 +283,13 @@ export default function BriefSummary({ data }: { data: BriefSummaryData }) {
           <p className="text-[11px] font-semibold uppercase tracking-[-0.35px] text-black/55">
             {section.title}
           </p>
-          <dl className="space-y-3">
+          <dl className="space-y-4">
             {section.rows.map((row) => (
               <div
                 key={row.label}
-                className="grid gap-1 md:grid-cols-[180px_1fr] md:gap-6"
+                className="grid gap-0.5 md:grid-cols-[180px_1fr] md:gap-6"
               >
-                <dt className="text-[11px] font-semibold uppercase tracking-[-0.3px] text-black/40">
+                <dt className="text-[10px] font-semibold uppercase tracking-[-0.3px] text-black/40">
                   {row.label}
                 </dt>
                 <dd className="text-[13px] font-medium leading-[1.45] tracking-[-0.2px] text-black">
